@@ -20,6 +20,7 @@ class User extends Authenticatable
     const NAME = 'name';
     const EMAIL = 'email';
     const PASSWORD = 'password';
+    const PHONE = 'phone';
     const ROLE_ID = 'role_id';
     const REMEMBER_TOKEN = 'remember_token';
     const EMAIL_VERIFIED_AT = 'email_verified_at';
@@ -34,6 +35,7 @@ class User extends Authenticatable
         self::EMAIL,
         self::PASSWORD,
         self::ROLE_ID,
+        self::PHONE,
     ];
 
     /**
@@ -67,6 +69,11 @@ class User extends Authenticatable
     public function getName(): string
     {
         return $this->getAttribute(self::NAME);
+    }
+
+    public function getPhone(): string
+    {
+        return $this->getAttribute(self::PHONE);
     }
 
     public function getEmail(): string

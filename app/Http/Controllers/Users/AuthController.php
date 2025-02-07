@@ -25,7 +25,8 @@ class AuthController extends Controller
             User::NAME => $request->name,
             User::EMAIL => $request->email,
             User::PASSWORD => $request->password,
-            User::ROLE_ID => $clientRole->id
+            User::ROLE_ID => $clientRole->id,
+            User::PHONE => $request->phone ? $request->phone : null,
         ]);
 
         return new UserResource($user);
