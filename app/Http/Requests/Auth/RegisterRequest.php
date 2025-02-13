@@ -33,7 +33,7 @@ class RegisterRequest extends FormRequest
         return $this->input(self::EMAIL);
     }
 
-    public function getPhone(): string
+    public function getPhone(): ?string
     {
         return $this->input(self::PHONE);
     }
