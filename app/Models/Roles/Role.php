@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Role extends Model
 {
+    const ID = 'id';
     const NAME = 'name';
 
     protected $fillable = [
@@ -24,5 +25,10 @@ class Role extends Model
     public function getName(): string
     {
         return $this->getAttribute(self::NAME);
+    }
+
+    public function getId(): int
+    {
+        return $this->getAttribute(self::ID);
     }
 }

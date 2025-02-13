@@ -22,4 +22,24 @@ class RegisterRequest extends FormRequest
             self::PHONE => 'nullable|numeric|min:8',
         ];
     }
+
+    public function getName(): string
+    {
+        return $this->input(self::NAME);
+    }
+
+    public function getEmail(): string
+    {
+        return $this->input(self::EMAIL);
+    }
+
+    public function getPhone(): string
+    {
+        return $this->input(self::PHONE);
+    }
+
+    public function getPassword(): string
+    {
+        return $this->input(self::PASSWORD);
+    }
 }

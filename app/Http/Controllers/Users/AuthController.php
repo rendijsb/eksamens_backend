@@ -22,11 +22,11 @@ class AuthController extends Controller
         $clientRole = Role::where(Role::NAME, RoleEnum::CLIENT->value)->first();
 
         $user = User::create([
-            User::NAME => $request->name,
-            User::EMAIL => $request->email,
-            User::PASSWORD => $request->password,
-            User::ROLE_ID => $clientRole->id,
-            User::PHONE => $request->phone ? $request->phone : null,
+            User::NAME => $request->getName(),
+            User::EMAIL => $request->getEmail(),
+            User::PASSWORD => Hash::make($request->getPassword()),
+            User::ROLE_ID => $clientRole->getId(),
+            User::PHONE => $request->getPhone() ? $request->getPhone() : null,
         ]);
 
         return new UserResource($user);
