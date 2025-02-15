@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Users\AuthController;
 use App\Http\Controllers\Users\UserController;
+use App\Http\Middleware\CheckRoleMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -17,5 +18,8 @@ Route::prefix('auth')->group(function () {
 
 Route::prefix('user')->group(function () {
     Route::get('getAll', [UserController::class, 'getAll'])
-        ->middleware(['auth:sanctum', 'role:admin']);
+        ->middleware([
+            'auth:sanctum',
+            CheckRoleMiddleware::class . ':admin'
+        ]);
 });

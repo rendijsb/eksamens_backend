@@ -19,10 +19,14 @@ class Kernel extends HttpKernel
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
+        'role' => [
+            \App\Http\Middleware\CheckRoleMiddleware::class,
+        ],
     ];
 
-    protected $routeMiddleware = [
+    protected $routeMiddleware = [  // Change to routeMiddleware
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
-        'role' => \App\Http\Middleware\CheckRoleMiddleware::class,
+        'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
+        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
     ];
 }

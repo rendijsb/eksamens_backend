@@ -11,25 +11,32 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\Auth\UserResource;
 use App\Models\Roles\Role;
 use App\Models\Users\User;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function register(RegisterRequest $request): UserResource
+    public function register(RegisterRequest $request): UserResource|JsonResponse
     {
-        $clientRole = Role::where(Role::NAME, RoleEnum::CLIENT->value)->first();
+        try {
+            $clientRole = Role::where(Role::NAME, RoleEnum::CLIENT->value)->first();
 
-        $user = User::create([
-            User::NAME => $request->getName(),
-            User::EMAIL => $request->getEmail(),
-            User::PASSWORD => Hash::make($request->getPassword()),
-            User::ROLE_ID => $clientRole->getId(),
-            User::PHONE => $request->getPhone() ? $request->getPhone() : null,
-        ]);
+            $user = User::create([
+                User::NAME => $request->getName(),
+                User::EMAIL => $request->getEmail(),
+                User::PASSWORD => Hash::make($request->getPassword()),
+                User::ROLE_ID => $clientRole->getId(),
+                User::PHONE => $request->getPhone() ? $request->getPhone() : null,
+            ]);
 
-        return new UserResource($user);
+            return new UserResource($user);
+        } catch (Exception $exception) {
+            return response()->json([
+                'message' => 'Kļūda reģistrējot lietotāju'
+            ], 422);
+        }
     }
 
     public function login(LoginRequest $request): UserResource|JsonResponse
@@ -39,7 +46,7 @@ class AuthController extends Controller
         if (!$user || !Hash::check($request->password, $user->{User::PASSWORD})) {
             return response()->json([
                 'message' => 'Nepareiza informācija'
-            ], 401);
+            ], 422);
         }
 
         $token = $user->createToken($user->getName());

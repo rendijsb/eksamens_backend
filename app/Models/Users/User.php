@@ -63,7 +63,7 @@ class User extends Authenticatable
 
     public function relatedRole(): BelongsTo
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Role::class, self::ROLE_ID);
     }
 
     public function getName(): string
@@ -79,5 +79,10 @@ class User extends Authenticatable
     public function getEmail(): string
     {
         return $this->getAttribute(self::EMAIL);
+    }
+
+    public function getRoleId(): int
+    {
+        return $this->getAttribute(self::ROLE_ID);
     }
 }

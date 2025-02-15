@@ -17,6 +17,7 @@ class UserResource extends JsonResource
             'id' => $this->resource->id,
             User::NAME => $this->resource->getName(),
             User::EMAIL => $this->resource->getEmail(),
+            'role' => $this->resource->getRoleId(),
         ];
 
         if ($this->token) {
