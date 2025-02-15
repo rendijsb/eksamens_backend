@@ -72,7 +72,7 @@ class User extends Authenticatable
         return $this->getAttribute(self::NAME);
     }
 
-    public function getPhone(): string
+    public function getPhone(): ?string
     {
         return $this->getAttribute(self::PHONE);
     }
