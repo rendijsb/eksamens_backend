@@ -22,4 +22,9 @@ Route::prefix('user')->group(function () {
             'auth:sanctum',
             CheckRoleMiddleware::class . ':admin'
         ]);
+    Route::delete('delete/{userId}', [UserController::class, 'delete'])
+        ->middleware([
+            'auth:sanctum',
+            CheckRoleMiddleware::class . ':admin'
+        ]);
 });
