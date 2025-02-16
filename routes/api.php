@@ -22,7 +22,19 @@ Route::prefix('user')->group(function () {
             'auth:sanctum',
             CheckRoleMiddleware::class . ':admin'
         ]);
-    Route::delete('delete/{userId}', [UserController::class, 'delete'])
+    Route::delete('delete/{userId}', [UserController::class, 'deleteUser'])
+        ->middleware([
+            'auth:sanctum',
+            CheckRoleMiddleware::class . ':admin'
+        ]);
+    Route::get('{userId}', [UserController::class, 'getUserById'])
+        ->middleware(['auth:sanctum']);
+    Route::post('create', [UserController::class, 'createUser'])
+        ->middleware([
+            'auth:sanctum',
+            CheckRoleMiddleware::class . ':admin'
+        ]);
+    Route::patch('edit/{userId}', [UserController::class, 'editUser'])
         ->middleware([
             'auth:sanctum',
             CheckRoleMiddleware::class . ':admin'

@@ -18,6 +18,7 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens;
 
+    const ID = 'id';
     const NAME = 'name';
     const EMAIL = 'email';
     const PASSWORD = 'password';
@@ -90,5 +91,10 @@ class User extends Authenticatable
     public function getCreatedAt(): Carbon
     {
         return $this->getAttribute(self::CREATED_AT);
+    }
+
+    public function getId(): int
+    {
+        return $this->getAttribute(self::ID);
     }
 }
