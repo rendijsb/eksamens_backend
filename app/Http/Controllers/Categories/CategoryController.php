@@ -18,7 +18,7 @@ class CategoryController extends Controller
 
         $category = Category::create([
             Category::NAME => $request->getName(),
-            Category::DESCRIPTION => $request->getEmail(),
+            Category::DESCRIPTION => $request->getDescription(),
             Category::SLUG => $slugValue,
         ]);
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Categories;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
@@ -41,7 +42,7 @@ class Category extends Model
         return $this->getAttribute(self::DESCRIPTION);
     }
 
-    public function getCreatedAt(): string
+    public function getCreatedAt(): Carbon
     {
         return $this->getAttribute(self::CREATED_AT);
     }

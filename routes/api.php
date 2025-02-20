@@ -52,7 +52,6 @@ Route::prefix('categories')->group(function () {
     Route::post('create', [CategoryController::class, 'createCategory'])
         ->middleware([
             'auth:sanctum',
-            CheckRoleMiddleware::class . ':admin',
-            CheckRoleMiddleware::class . ':moderator'
+            CheckRoleMiddleware::class . ':admin|moderator',
         ]);
 });

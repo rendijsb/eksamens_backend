@@ -10,7 +10,7 @@ use Illuminate\Http\JsonResponse;
 
 class CheckRoleMiddleware
 {
-    public function handle(Request $request, Closure $next, string $role): mixed
+    public function handle(Request $request, Closure $next, string $roles): mixed
     {
         $user = $request->user();
 
@@ -20,7 +20,9 @@ class CheckRoleMiddleware
 
         $user->load('relatedRole');
 
-        if (!$user->relatedRole || $user->relatedRole->getName() !== $role) {
+        $allowedRoles = explode('|', $roles);
+
+        if (!$user->relatedRole || !in_array($user->relatedRole->getName(), $allowedRoles)) {
             return new JsonResponse(['message' => 'Forbidden'], 403);
         }
 
