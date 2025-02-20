@@ -15,6 +15,13 @@ class DeleteCategoryRequest extends FormRequest
         ];
     }
 
+    public function validationData(): array
+    {
+        return array_merge($this->all(), [
+            self::CATEGORY_ID => $this->route(self::CATEGORY_ID),
+        ]);
+    }
+
     public function getCategoryId(): int
     {
         return (int) $this->route(self::CATEGORY_ID);
