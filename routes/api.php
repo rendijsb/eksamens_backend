@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Categories\CategoryController;
 use App\Http\Controllers\Users\AuthController;
 use App\Http\Controllers\Users\UserController;
 use App\Http\Middleware\CheckRoleMiddleware;
@@ -38,5 +39,20 @@ Route::prefix('user')->group(function () {
         ->middleware([
             'auth:sanctum',
             CheckRoleMiddleware::class . ':admin'
+        ]);
+});
+
+Route::prefix('categories')->group(function () {
+//    Route::get('getAll', [CategoryController::class, 'getAll'])
+//        ->middleware([
+//            'auth:sanctum',
+//            CheckRoleMiddleware::class . ':admin',
+//    CheckRoleMiddleware::class . ':moderator'
+//        ]);
+    Route::post('create', [CategoryController::class, 'createCategory'])
+        ->middleware([
+            'auth:sanctum',
+            CheckRoleMiddleware::class . ':admin',
+            CheckRoleMiddleware::class . ':moderator'
         ]);
 });
