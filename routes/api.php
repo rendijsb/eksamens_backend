@@ -43,13 +43,27 @@ Route::prefix('user')->group(function () {
 });
 
 Route::prefix('categories')->group(function () {
-//    Route::get('getAll', [CategoryController::class, 'getAll'])
-//        ->middleware([
-//            'auth:sanctum',
-//            CheckRoleMiddleware::class . ':admin',
-//    CheckRoleMiddleware::class . ':moderator'
-//        ]);
+    Route::get('getAll', [CategoryController::class, 'getAllCategories'])
+        ->middleware([
+            'auth:sanctum',
+            CheckRoleMiddleware::class . ':admin|moderator',
+        ]);
     Route::post('create', [CategoryController::class, 'createCategory'])
+        ->middleware([
+            'auth:sanctum',
+            CheckRoleMiddleware::class . ':admin|moderator',
+        ]);
+    Route::get('{categoryId}', [CategoryController::class, 'getCategoryById'])
+        ->middleware([
+            'auth:sanctum',
+            CheckRoleMiddleware::class . ':admin|moderator',
+        ]);
+    Route::patch('edit/{categoryId}', [CategoryController::class, 'editCategory'])
+        ->middleware([
+            'auth:sanctum',
+            CheckRoleMiddleware::class . ':admin|moderator',
+        ]);
+    Route::delete('delete/{categoryId}', [CategoryController::class, 'deleteCategory'])
         ->middleware([
             'auth:sanctum',
             CheckRoleMiddleware::class . ':admin|moderator',
