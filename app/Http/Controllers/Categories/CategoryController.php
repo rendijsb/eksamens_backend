@@ -23,9 +23,13 @@ class CategoryController extends Controller
 
         return new CategoryResourceCollection($categories);
     }
-    public function createCategory(CreateCategoryRequest $request): CategoryResource
+    public function createCategory(CreateCategoryRequest $request): CategoryResource|JsonResponse
     {
         $slugValue = Str::kebab(Str::squish($request->getName()));
+
+        if (Category::where(Category::SLUG, $slugValue)->exists()) {
+            return response()->json(['message' => 'Category already exists'], 422);
+        }
 
         $category = Category::create([
             Category::NAME => $request->getName(),
