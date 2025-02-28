@@ -19,7 +19,7 @@ return new class extends Migration {
             $table->integer('stock')->default(0);
             $table->text('specifications')->nullable();
             $table->text('additional_info')->nullable();
-            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->enum('status', ['active', 'inactive'])->default('inactive');
             $table->timestamps();
         });
     }
