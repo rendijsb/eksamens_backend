@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models\Categories;
 
+use App\Models\Products\Product;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Category extends Model
 {
@@ -45,5 +47,10 @@ class Category extends Model
     public function getCreatedAt(): Carbon
     {
         return $this->getAttribute(self::CREATED_AT);
+    }
+
+    public function relatedProducts(): ?HasMany
+    {
+        return $this->hasMany(Product::class, Product::CATEGORY_ID, self::ID);
     }
 }

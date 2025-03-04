@@ -19,6 +19,7 @@ class CategoryResource extends JsonResource
             'description' => $this->resource->getDescription(),
             'slug' => $this->resource->getSlug(),
             'created_at' => $this->resource->getCreatedAt(),
+            'products_count' => $this->resource->relatedProducts()?->count(),
         ];
     }
 }

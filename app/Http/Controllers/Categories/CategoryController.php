@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Categories\CreateCategoryRequest;
 use App\Http\Requests\Categories\DeleteCategoryRequest;
 use App\Http\Requests\Categories\EditCategoryRequest;
+use App\Http\Requests\Categories\GetAllCategoriesRequest;
 use App\Http\Requests\Categories\GetCategoryByIdRequest;
 use App\Http\Resources\Categories\CategoryResource;
 use App\Http\Resources\Categories\CategoryResourceCollection;
@@ -17,12 +18,29 @@ use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
-    public function getAllCategories(): CategoryResourceCollection
+    public function getAllCategories(GetAllCategoriesRequest $request): CategoryResourceCollection
     {
-        $categories = Category::paginate(15);
+        $query = Category::query();
+
+        if ($request->getSearch()) {
+            $searchTerm = $request->getSearch();
+            $query->where(function($q) use ($searchTerm) {
+                $q->where(Category::NAME, 'like', "%{$searchTerm}%")
+                    ->orWhere(Category::DESCRIPTION, 'like', "%{$searchTerm}%")
+                    ->orWhere(Category::SLUG, 'like', "%{$searchTerm}%");
+            });
+        }
+
+        $sortField = $request->getSortBy();
+        $sortDirection = $request->getSortDir();
+
+        $query->orderBy($sortField, $sortDirection);
+
+        $categories = $query->paginate(15);
 
         return new CategoryResourceCollection($categories);
     }
+
     public function createCategory(CreateCategoryRequest $request): CategoryResource|JsonResponse
     {
         $slugValue = Str::kebab(Str::squish($request->getName()));
