@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Categories\CategoryController;
+use App\Http\Controllers\Products\ProductController;
 use App\Http\Controllers\Users\AuthController;
 use App\Http\Controllers\Users\UserController;
 use App\Http\Middleware\CheckRoleMiddleware;
@@ -13,59 +14,39 @@ Route::prefix('auth')->group(function () {
         ->middleware('throttle:5,1');
     Route::post('/login', [AuthController::class, 'login'])
         ->middleware('throttle:10,1');
-    Route::post('/logout', [AuthController::class, 'logout'])
-        ->middleware('auth:sanctum');
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+    });
 });
 
-Route::prefix('user')->group(function () {
-    Route::get('getAll', [UserController::class, 'getAll'])
-        ->middleware([
-            'auth:sanctum',
-            CheckRoleMiddleware::class . ':admin'
-        ]);
-    Route::delete('delete/{userId}', [UserController::class, 'deleteUser'])
-        ->middleware([
-            'auth:sanctum',
-            CheckRoleMiddleware::class . ':admin'
-        ]);
-    Route::get('{userId}', [UserController::class, 'getUserById'])
-        ->middleware(['auth:sanctum']);
-    Route::post('create', [UserController::class, 'createUser'])
-        ->middleware([
-            'auth:sanctum',
-            CheckRoleMiddleware::class . ':admin'
-        ]);
-    Route::patch('edit/{userId}', [UserController::class, 'editUser'])
-        ->middleware([
-            'auth:sanctum',
-            CheckRoleMiddleware::class . ':admin'
-        ]);
+Route::middleware('auth:sanctum')->prefix('user')->group(function () {
+    Route::middleware(CheckRoleMiddleware::class . ':admin')->group(function () {
+        Route::get('getAll', [UserController::class, 'getAll']);
+        Route::delete('delete/{userId}', [UserController::class, 'deleteUser']);
+        Route::post('create', [UserController::class, 'createUser']);
+        Route::patch('edit/{userId}', [UserController::class, 'editUser']);
+    });
+
+    Route::get('{userId}', [UserController::class, 'getUserById']);
 });
 
-Route::prefix('categories')->group(function () {
-    Route::get('getAll', [CategoryController::class, 'getAllCategories'])
-        ->middleware([
-            'auth:sanctum',
-            CheckRoleMiddleware::class . ':admin|moderator',
-        ]);
-    Route::post('create', [CategoryController::class, 'createCategory'])
-        ->middleware([
-            'auth:sanctum',
-            CheckRoleMiddleware::class . ':admin|moderator',
-        ]);
-    Route::get('{categoryId}', [CategoryController::class, 'getCategoryById'])
-        ->middleware([
-            'auth:sanctum',
-            CheckRoleMiddleware::class . ':admin|moderator',
-        ]);
-    Route::patch('edit/{categoryId}', [CategoryController::class, 'editCategory'])
-        ->middleware([
-            'auth:sanctum',
-            CheckRoleMiddleware::class . ':admin|moderator',
-        ]);
-    Route::delete('delete/{categoryId}', [CategoryController::class, 'deleteCategory'])
-        ->middleware([
-            'auth:sanctum',
-            CheckRoleMiddleware::class . ':admin|moderator',
-        ]);
-});
+Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderator'])
+    ->prefix('categories')
+    ->group(function () {
+        Route::get('getAll', [CategoryController::class, 'getAllCategories']);
+        Route::post('create', [CategoryController::class, 'createCategory']);
+        Route::get('{categoryId}', [CategoryController::class, 'getCategoryById']);
+        Route::patch('edit/{categoryId}', [CategoryController::class, 'editCategory']);
+        Route::delete('delete/{categoryId}', [CategoryController::class, 'deleteCategory']);
+    });
+
+Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderator'])
+    ->prefix('products')
+    ->group(function () {
+        Route::get('getAll', [ProductController::class, 'getAllProducts']);
+        Route::post('create', [ProductController::class, 'createProduct']);
+//        Route::get('{categoryId}', [CategoryController::class, 'getCategoryById']);
+//        Route::patch('edit/{categoryId}', [CategoryController::class, 'editCategory']);
+//        Route::delete('delete/{categoryId}', [CategoryController::class, 'deleteCategory']);
+    });

@@ -8,8 +8,5 @@ use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class CategoryResourceCollection extends ResourceCollection
 {
-    public function toArray($request): array
-    {
-        return $this->collection->toArray();
-    }
+    public $collects = CategoryResource::class;
 }

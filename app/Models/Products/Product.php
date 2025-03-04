@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Products;
 
+use App\Models\Categories\Category;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
@@ -59,5 +60,45 @@ class Product extends Model
     public function getCreatedAt(): Carbon
     {
         return $this->getAttribute(self::CREATED_AT);
+    }
+
+    public function getUpdatedAt(): Carbon
+    {
+        return $this->getAttribute(self::UPDATED_AT);
+    }
+
+    public function getStock(): int
+    {
+        return $this->getAttribute(self::STOCK);
+    }
+
+    public function getPrice(): int
+    {
+        return $this->getAttribute(self::PRICE);
+    }
+
+    public function getSalePrice(): int
+    {
+        return $this->getAttribute(self::SALE_PRICE);
+    }
+
+    public function getSpecifications(): string
+    {
+        return $this->getAttribute(self::SPECIFICATIONS);
+    }
+
+    public function getAdditionalInfo(): string
+    {
+        return $this->getAttribute(self::ADDITIONAL_INFO);
+    }
+
+    public function getStatus(): string
+    {
+        return $this->getAttribute(self::STATUS);
+    }
+
+    public function getRelatedCategory(): Category
+    {
+        return $this->hasOne(Category::class, Category::ID, self::CATEGORY_ID)->first();
     }
 }
