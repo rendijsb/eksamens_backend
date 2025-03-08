@@ -72,12 +72,12 @@ class Product extends Model
         return $this->getAttribute(self::STOCK);
     }
 
-    public function getPrice(): int
+    public function getPrice(): string
     {
         return $this->getAttribute(self::PRICE);
     }
 
-    public function getSalePrice(): int
+    public function getSalePrice(): string
     {
         return $this->getAttribute(self::SALE_PRICE);
     }

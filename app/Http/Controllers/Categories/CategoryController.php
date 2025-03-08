@@ -67,13 +67,21 @@ class CategoryController extends Controller
         return new CategoryResource($category);
     }
 
-    public function editCategory(EditCategoryRequest $request): CategoryResource
+    public function editCategory(EditCategoryRequest $request): CategoryResource|JsonResponse
     {
         $category = Category::findOrFail(
             $request->getCategoryId()
         );
 
         $slugValue = Str::kebab(Str::squish($request->getName()));
+
+        $slugExists = Category::where(Category::SLUG, $slugValue)
+            ->where(Category::ID, '!=', $category->getId())
+            ->exists();
+
+        if ($slugExists) {
+            return response()->json(['message' => 'Kategorija ar šo nosaukumu jau eksistē'], 422);
+        }
 
         $category->update([
             Category::NAME => $request->getName(),

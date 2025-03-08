@@ -46,7 +46,7 @@ Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderato
     ->group(function () {
         Route::get('getAll', [ProductController::class, 'getAllProducts']);
         Route::post('create', [ProductController::class, 'createProduct']);
-//        Route::get('{categoryId}', [CategoryController::class, 'getCategoryById']);
-//        Route::patch('edit/{categoryId}', [CategoryController::class, 'editCategory']);
-//        Route::delete('delete/{categoryId}', [CategoryController::class, 'deleteCategory']);
+        Route::get('{productId}', [ProductController::class, 'getProductById']);
+        Route::patch('edit/{productId}', [ProductController::class, 'editProduct']);
+        Route::delete('delete/{productId}', [ProductController::class, 'deleteProduct']);
     });
