@@ -54,14 +54,14 @@ class EditProductRequest extends FormRequest
         return $this->input(self::DESCRIPTION);
     }
 
-    public function getPrice(): float
+    public function getPrice(): string
     {
-        return (float) $this->input(self::PRICE);
+        return (string) $this->input(self::PRICE);
     }
 
-    public function getSalePrice(): ?float
+    public function getSalePrice(): ?string
     {
-        return $this->has(self::SALE_PRICE) ? (float) $this->input(self::SALE_PRICE) : null;
+        return $this->has(self::SALE_PRICE) ? (string) $this->input(self::SALE_PRICE) : null;
     }
 
     public function getStock(): int
