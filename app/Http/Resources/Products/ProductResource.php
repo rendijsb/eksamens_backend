@@ -25,6 +25,7 @@ class ProductResource extends JsonResource
             'additional_info' => $this->resource->getAdditionalInfo(),
             'status' => $this->resource->getStatus(),
             'category' => $this->resource->getRelatedCategory()->getName(),
+            'category_id' => $this->resource->getCategoryId(),
             'created_at' => $this->resource->getCreatedAt(),
         ];
     }

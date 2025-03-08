@@ -97,6 +97,11 @@ class Product extends Model
         return $this->getAttribute(self::STATUS);
     }
 
+    public function getCategoryId(): int
+    {
+        return $this->getAttribute(self::CATEGORY_ID);
+    }
+
     public function getRelatedCategory(): Category
     {
         return $this->hasOne(Category::class, Category::ID, self::CATEGORY_ID)->first();
