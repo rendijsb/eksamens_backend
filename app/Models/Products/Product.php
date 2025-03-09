@@ -106,4 +106,13 @@ class Product extends Model
     {
         return $this->hasOne(Category::class, Category::ID, self::CATEGORY_ID)->first();
     }
+
+    public function getRelatedPrimaryImage(): ?ProductImage
+    {
+        return $this->hasMany(ProductImage::class, ProductImage::PRODUCT_ID)
+            ->where(ProductImage::IS_PRIMARY, '=', true)
+            ->first() ? $this->hasMany(ProductImage::class, ProductImage::PRODUCT_ID)
+            ->where(ProductImage::IS_PRIMARY, '=', true)
+            ->first() : $this->hasMany(ProductImage::class, ProductImage::PRODUCT_ID)->first();
+    }
 }

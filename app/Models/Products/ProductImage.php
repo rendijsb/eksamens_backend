@@ -36,6 +36,11 @@ class ProductImage extends Model
         return $this->getAttribute(self::PRODUCT_ID);
     }
 
+    public function getImage(): string
+    {
+        return $this->getAttribute(self::IMAGE);
+    }
+
     public function getIsPrimary(): bool
     {
         return $this->getAttribute(self::IS_PRIMARY);
