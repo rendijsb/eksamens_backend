@@ -1,0 +1,100 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Images;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Images\DeleteImageRequest;
+use App\Http\Requests\Images\GetImagesRequest;
+use App\Http\Requests\Images\SetPrimaryImageRequest;
+use App\Http\Requests\Images\UploadImagesRequest;
+use App\Http\Resources\Images\ImageResource;
+use App\Http\Resources\Images\ImageResourceCollection;
+use App\Models\Images\Image;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
+class ImageController extends Controller
+{
+    public function getImages(GetImagesRequest $request): ImageResourceCollection
+    {
+        $id = $request->getRelatedId();
+
+        $images = Image::where(Image::RELATED_ID, $id)
+            ->where(Image::TYPE, $request->getType())
+            ->orderBy(Image::IS_PRIMARY, 'desc')
+            ->get();
+
+        return new ImageResourceCollection($images);
+    }
+
+    public function uploadImages(UploadImagesRequest $request): ImageResourceCollection
+    {
+        $id = $request->getRelatedId();
+        $newImages = [];
+
+        $isPrimaryRequired = !Image::where(Image::RELATED_ID, $id)
+            ->where(Image::TYPE, $request->getType())
+            ->where(Image::IS_PRIMARY, true)
+            ->exists();
+
+        foreach ($request->getImages() as $index => $image) {
+            $filename = Str::uuid() . '.' . $image->getClientOriginalExtension();
+            $image->storeAs('public/' . $request->getType(), $filename);
+
+            $isPrimary = $isPrimaryRequired && $index === 0;
+
+            $image = Image::create([
+                Image::RELATED_ID => $id,
+                Image::TYPE => $request->getType(),
+                Image::IMAGE_LINK => $filename,
+                Image::IS_PRIMARY => $isPrimary
+            ]);
+
+            $newImages[] = $image;
+        }
+
+        return new ImageResourceCollection(collect($newImages));
+    }
+
+    public function setPrimaryImage(SetPrimaryImageRequest $request): ImageResource
+    {
+        $imageId = $request->getImageId();
+        $image = Image::findOrFail($imageId);
+
+        Image::where(Image::RELATED_ID, $image->getRelatedId())
+            ->where(Image::TYPE, $image->getType())
+            ->update([Image::IS_PRIMARY => false]);
+
+        $image->update([Image::IS_PRIMARY => true]);
+
+        return new ImageResource($image);
+    }
+
+    public function deleteImage(DeleteImageRequest $request): JsonResponse
+    {
+        $imageId = $request->getImageId();
+        $image = Image::findOrFail($imageId);
+        $relatedId = $image->getRelatedId();
+        $isPrimary = $image->getIsPrimary();
+
+        Storage::delete('public/' . $image->getType() . '/' . $image->getImageLink());
+
+        $image->delete();
+
+        if ($isPrimary) {
+            $nextImage = Image::where(Image::RELATED_ID, $relatedId)
+                ->where(Image::TYPE, $image->getType())
+                ->first();
+            if ($nextImage) {
+                $nextImage->update([Image::IS_PRIMARY => true]);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Image deleted successfully'
+        ], 204);
+    }
+}

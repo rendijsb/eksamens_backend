@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Categories\CategoryController;
+use App\Http\Controllers\Images\ImageController;
 use App\Http\Controllers\Products\ProductController;
 use App\Http\Controllers\Products\ProductImageController;
 use App\Http\Controllers\Users\AuthController;
@@ -53,10 +54,10 @@ Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderato
     });
 
 Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderator'])
-    ->prefix('product-images')
+    ->prefix('images')
     ->group(function () {
-        Route::get('{productId}', [ProductImageController::class, 'getProductImages']);
-        Route::post('upload/{productId}', [ProductImageController::class, 'uploadImages']);
-        Route::patch('set-primary/{imageId}', [ProductImageController::class, 'setPrimaryImage']);
-        Route::delete('delete/{imageId}', [ProductImageController::class, 'deleteImage']);
+        Route::get('{relatedId}', [ImageController::class, 'getImages']);
+        Route::post('upload/{relatedId}', [ImageController::class, 'uploadImages']);
+        Route::patch('set-primary/{imageId}', [ImageController::class, 'setPrimaryImage']);
+        Route::delete('delete/{imageId}', [ImageController::class, 'deleteImage']);
     });

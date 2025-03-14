@@ -2,37 +2,44 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Products;
+namespace App\Http\Requests\Images;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UploadProductImagesRequest extends FormRequest
+class UploadImagesRequest extends FormRequest
 {
-    const PRODUCT_ID = 'productId';
+    const RELATED_ID = 'relatedId';
     const IMAGES = 'images';
+    const TYPE = 'type';
 
     public function rules(): array
     {
         return [
             self::IMAGES => 'required|array',
             self::IMAGES . '.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            self::TYPE => 'required|string',
         ];
     }
 
     public function validationData(): array
     {
         return array_merge($this->all(), [
-            self::PRODUCT_ID => $this->route(self::PRODUCT_ID),
+            self::RELATED_ID => $this->route(self::RELATED_ID),
         ]);
     }
 
-    public function getProductId(): int
+    public function getRelatedId(): int
     {
-        return (int) $this->route(self::PRODUCT_ID);
+        return (int) $this->route(self::RELATED_ID);
     }
 
     public function getImages(): array
     {
         return $this->file(self::IMAGES) ?? [];
+    }
+
+    public function getType(): string
+    {
+        return (string) $this->input(self::TYPE);
     }
 }

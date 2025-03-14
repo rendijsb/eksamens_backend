@@ -2,23 +2,25 @@
 
 declare(strict_types=1);
 
-namespace App\Models\Products;
+namespace App\Models\Images;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
-class ProductImage extends Model
+class Image extends Model
 {
     const ID = 'id';
-    const PRODUCT_ID = 'product_id';
-    const IMAGE = 'image';
+    const RELATED_ID = 'related_id';
+    const IMAGE_LINK = 'image_link';
+    const TYPE = 'type';
     const IS_PRIMARY = 'is_primary';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
     protected $fillable = [
-        self::PRODUCT_ID,
-        self::IMAGE,
+        self::RELATED_ID,
+        self::IMAGE_LINK,
+        self::TYPE,
         self::IS_PRIMARY
     ];
 
@@ -31,14 +33,19 @@ class ProductImage extends Model
         return $this->getAttribute(self::ID);
     }
 
-    public function getProductId(): int
+    public function getRelatedId(): int
     {
-        return $this->getAttribute(self::PRODUCT_ID);
+        return $this->getAttribute(self::RELATED_ID);
     }
 
-    public function getImage(): string
+    public function getImageLink(): string
     {
-        return $this->getAttribute(self::IMAGE);
+        return $this->getAttribute(self::IMAGE_LINK);
+    }
+
+    public function getType(): string
+    {
+        return $this->getAttribute(self::TYPE);
     }
 
     public function getIsPrimary(): bool

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Products;
 
+use App\Enums\Images\ImageTypeEnum;
 use App\Models\Products\Product;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -25,7 +26,7 @@ class ProductResource extends JsonResource
             'additional_info' => $this->resource->getAdditionalInfo(),
             'status' => $this->resource->getStatus(),
             'category' => $this->resource->getRelatedCategory()->getName(),
-            'primary_image' => url('/products/image/' . $this->resource->getRelatedPrimaryImage()?->getImage()),
+            'primary_image' => url('/' . ImageTypeEnum::PRODUCT->value . '/image/' . $this->resource->getRelatedPrimaryImage()?->getImageLink()),
             'category_id' => $this->resource->getCategoryId(),
             'created_at' => $this->resource->getCreatedAt(),
         ];

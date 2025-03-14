@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Products;
+namespace App\Http\Requests\Images;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -13,7 +13,7 @@ class SetPrimaryImageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            self::IMAGE_ID => 'required|exists:product_images,id',
+            self::IMAGE_ID => 'required',
         ];
     }
 

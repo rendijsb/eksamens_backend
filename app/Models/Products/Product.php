@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models\Products;
 
+use App\Enums\Images\ImageTypeEnum;
 use App\Models\Categories\Category;
+use App\Models\Images\Image;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Product extends Model
 {
@@ -107,12 +111,27 @@ class Product extends Model
         return $this->hasOne(Category::class, Category::ID, self::CATEGORY_ID)->first();
     }
 
-    public function getRelatedPrimaryImage(): ?ProductImage
+    public function getAllImages(): HasMany
     {
-        return $this->hasMany(ProductImage::class, ProductImage::PRODUCT_ID)
-            ->where(ProductImage::IS_PRIMARY, '=', true)
-            ->first() ? $this->hasMany(ProductImage::class, ProductImage::PRODUCT_ID)
-            ->where(ProductImage::IS_PRIMARY, '=', true)
-            ->first() : $this->hasMany(ProductImage::class, ProductImage::PRODUCT_ID)->first();
+        return $this->hasMany(Image::class, Image::RELATED_ID)
+            ->where(Image::TYPE, ImageTypeEnum::PRODUCT->value);
+    }
+
+    public function primaryImage(): HasOne
+    {
+        return $this->hasOne(Image::class, Image::RELATED_ID)
+            ->where(Image::TYPE, ImageTypeEnum::PRODUCT->value)
+            ->where(Image::IS_PRIMARY, true);
+    }
+
+    public function getRelatedPrimaryImage(): ?Image
+    {
+        $primary = $this->primaryImage()->first();
+
+        if (!$primary) {
+            $primary = $this->getAllImages()->first();
+        }
+
+        return $primary;
     }
 }

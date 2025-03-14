@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Resources\Products;
+namespace App\Http\Resources\Images;
 
-use App\Models\Products\ProductImage;
+use App\Models\Images\Image;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ProductImageResource extends JsonResource
+class ImageResource extends JsonResource
 {
-    public $resource = ProductImage::class;
+    public $resource = Image::class;
 
     public function toArray($request): array
     {
         return [
             'id' => $this->resource->getId(),
-            'product_id' => $this->resource->getProductId(),
-            'image_url' => url('/products/image/' . $this->resource->getImage()),
+            'related_id' => $this->resource->getRelatedId(),
+            'image_url' => url('/' . $this->resource->getType() .'/image/' . $this->resource->getImageLink()),
             'is_primary' => $this->resource->getIsPrimary(),
             'created_at' => $this->resource->getCreatedAt(),
         ];
