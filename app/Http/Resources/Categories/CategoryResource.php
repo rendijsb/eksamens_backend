@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Categories;
 
+use App\Enums\Images\ImageTypeEnum;
 use App\Models\Categories\Category;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -18,6 +19,7 @@ class CategoryResource extends JsonResource
             'name' => $this->resource->getName(),
             'description' => $this->resource->getDescription(),
             'slug' => $this->resource->getSlug(),
+            'image' => url('/' . ImageTypeEnum::CATEGORY->value . '/image/' . $this->resource->getRelatedImage()?->getImageLink()),
             'created_at' => $this->resource->getCreatedAt(),
             'products_count' => $this->resource->relatedProducts()?->count(),
         ];

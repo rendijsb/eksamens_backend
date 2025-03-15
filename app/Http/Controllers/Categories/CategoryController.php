@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Categories;
 
+use App\Enums\Images\ImageTypeEnum;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Images\ImageController;
 use App\Http\Requests\Categories\CreateCategoryRequest;
 use App\Http\Requests\Categories\DeleteCategoryRequest;
 use App\Http\Requests\Categories\EditCategoryRequest;
@@ -13,11 +15,18 @@ use App\Http\Requests\Categories\GetCategoryByIdRequest;
 use App\Http\Resources\Categories\CategoryResource;
 use App\Http\Resources\Categories\CategoryResourceCollection;
 use App\Models\Categories\Category;
+use App\Models\Images\Image;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
+    public function __construct(
+        private readonly ImageController $imageController
+    )
+    {
+    }
+
     public function getAllCategories(GetAllCategoriesRequest $request): CategoryResourceCollection
     {
         $query = Category::query();
@@ -55,6 +64,10 @@ class CategoryController extends Controller
             Category::SLUG => $slugValue,
         ]);
 
+        if ($request->getImage()) {
+            $this->imageController->handleCategoryImage($category->id, $request->getImage());
+        }
+
         return new CategoryResource($category);
     }
 
@@ -83,6 +96,10 @@ class CategoryController extends Controller
             return response()->json(['message' => 'Kategorija ar šo nosaukumu jau eksistē'], 422);
         }
 
+        if ($request->getImage()) {
+            $this->imageController->handleCategoryImage($category->id, $request->getImage());
+        }
+
         $category->update([
             Category::NAME => $request->getName(),
             Category::DESCRIPTION => $request->getDescription(),
@@ -97,6 +114,10 @@ class CategoryController extends Controller
         $category = Category::findOrFail(
             $request->getCategoryId()
         );
+
+        Image::where(Image::RELATED_ID, $category->getId())
+            ->where(Image::TYPE, ImageTypeEnum::CATEGORY->value)
+            ->delete();
 
         $category->delete();
 

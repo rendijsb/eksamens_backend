@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Images;
 
+use App\Enums\Images\ImageTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Images\DeleteImageRequest;
 use App\Http\Requests\Images\GetImagesRequest;
@@ -13,6 +14,7 @@ use App\Http\Resources\Images\ImageResource;
 use App\Http\Resources\Images\ImageResourceCollection;
 use App\Models\Images\Image;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -96,5 +98,27 @@ class ImageController extends Controller
         return response()->json([
             'message' => 'Image deleted successfully'
         ], 204);
+    }
+
+    public function handleCategoryImage(int $categoryId, UploadedFile $imageFile): void
+    {
+        $existingImages = Image::where(Image::RELATED_ID, $categoryId)
+            ->where(Image::TYPE, ImageTypeEnum::CATEGORY->value)
+            ->get();
+
+        foreach ($existingImages as $image) {
+            Storage::delete('public/' . ImageTypeEnum::CATEGORY->value . '/' . $image->getImageLink());
+            $image->delete();
+        }
+
+        $filename = Str::uuid() . '.' . $imageFile->getClientOriginalExtension();
+        $imageFile->storeAs('public/' . ImageTypeEnum::CATEGORY->value, $filename);
+
+        Image::create([
+            Image::RELATED_ID => $categoryId,
+            Image::TYPE => ImageTypeEnum::CATEGORY->value,
+            Image::IMAGE_LINK => $filename,
+            Image::IS_PRIMARY => true
+        ]);
     }
 }

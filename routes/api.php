@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Http\Controllers\Categories\CategoryController;
 use App\Http\Controllers\Images\ImageController;
 use App\Http\Controllers\Products\ProductController;
-use App\Http\Controllers\Products\ProductImageController;
 use App\Http\Controllers\Users\AuthController;
 use App\Http\Controllers\Users\UserController;
 use App\Http\Middleware\CheckRoleMiddleware;
@@ -39,7 +38,7 @@ Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderato
         Route::get('getAll', [CategoryController::class, 'getAllCategories']);
         Route::post('create', [CategoryController::class, 'createCategory']);
         Route::get('{categoryId}', [CategoryController::class, 'getCategoryById']);
-        Route::patch('edit/{categoryId}', [CategoryController::class, 'editCategory']);
+        Route::post('edit/{categoryId}', [CategoryController::class, 'editCategory']);
         Route::delete('delete/{categoryId}', [CategoryController::class, 'deleteCategory']);
     });
 
@@ -61,3 +60,13 @@ Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderato
         Route::patch('set-primary/{imageId}', [ImageController::class, 'setPrimaryImage']);
         Route::delete('delete/{imageId}', [ImageController::class, 'deleteImage']);
     });
+
+Route::prefix('public')->group(function () {
+    Route::prefix('categories')->group(function () {
+        Route::get('getAll', [CategoryController::class, 'getAllCategories']);
+    });
+
+    Route::prefix('products')->group(function () {
+        Route::get('getAll', [ProductController::class, 'getAllProducts']);
+    });
+});
