@@ -22,6 +22,7 @@ class CategoryResource extends JsonResource
             'image' => url('/' . ImageTypeEnum::CATEGORY->value . '/image/' . $this->resource->getRelatedImage()?->getImageLink()),
             'created_at' => $this->resource->getCreatedAt(),
             'products_count' => $this->resource->relatedProducts()?->count(),
+            'active_products_count' => $this->resource->relatedActiveProducts()?->count(),
         ];
     }
 }

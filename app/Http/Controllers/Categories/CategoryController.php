@@ -123,4 +123,17 @@ class CategoryController extends Controller
 
         return new JsonResponse([], 204);
     }
+
+    public function getAllActiveCategories(): CategoryResourceCollection
+    {
+        $query = Category::query();
+
+        $query->whereHas('relatedProducts', function($q) {
+            $q->where('status', 'active');
+        });
+
+        $categories = $query->paginate(15);
+
+        return new CategoryResourceCollection($categories);
+    }
 }

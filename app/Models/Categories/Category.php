@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Categories;
 
 use App\Enums\Images\ImageTypeEnum;
+use App\Enums\Products\ProductEnum;
 use App\Models\Images\Image;
 use App\Models\Products\Product;
 use Carbon\Carbon;
@@ -54,6 +55,12 @@ class Category extends Model
     public function relatedProducts(): ?HasMany
     {
         return $this->hasMany(Product::class, Product::CATEGORY_ID, self::ID);
+    }
+
+    public function relatedActiveProducts(): ?HasMany
+    {
+        return $this->hasMany(Product::class, Product::CATEGORY_ID, self::ID)
+            ->where(Product::STATUS, '=', ProductEnum::ACTIVE);
     }
 
     public function getRelatedImage(): ?Image

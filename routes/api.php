@@ -74,10 +74,10 @@ Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderato
 
 Route::prefix('public')->group(function () {
     Route::prefix('categories')->group(function () {
-        Route::get('getAll', [CategoryController::class, 'getAllCategories']);
+        Route::get('getAllActiveCategories', [CategoryController::class, 'getAllActiveCategories']);
     });
 
     Route::prefix('products')->group(function () {
-        Route::get('getAll', [ProductController::class, 'getAllProducts']);
+        Route::get('getAllPopularActiveProducts', [ProductController::class, 'getAllPopularActiveProducts']);
     });
 });

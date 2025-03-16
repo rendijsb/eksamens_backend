@@ -40,7 +40,7 @@ class BannerController extends Controller
             });
         }
 
-        if ($request->getStatus()) {
+        if ($request->getStatus() !== null) {
             $query->where(Banner::IS_ACTIVE, $request->getStatus());
         }
 

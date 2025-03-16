@@ -40,6 +40,16 @@ class GetAllBannersRequest extends FormRequest
 
     public function getStatus(): ?bool
     {
-        return $this->input(self::STATUS);
+        if (!$this->has(self::STATUS)) {
+            return null;
+        }
+
+        $value = $this->input(self::STATUS);
+
+        if (is_string($value)) {
+            return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+        }
+
+        return (bool) $value;
     }
 }

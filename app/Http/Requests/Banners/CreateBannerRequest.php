@@ -47,7 +47,13 @@ class CreateBannerRequest extends FormRequest
 
     public function getIsActive(): bool
     {
-        return $this->input(self::IS_ACTIVE);
+        $value = $this->input(self::IS_ACTIVE);
+
+        if (is_string($value)) {
+            return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+        }
+
+        return (bool) $value;
     }
 
     public function getButtonText(): string

@@ -125,4 +125,15 @@ class ProductController extends Controller
 
         return new JsonResponse([], 204);
     }
+
+    public function getAllPopularActiveProducts(): ProductResourceCollection
+    {
+        $query = Product::query();
+
+        $products = $query->where(Product::STATUS, ProductEnum::ACTIVE->value)
+            ->orderBy(Product::SOLD, 'desc')
+            ->paginate(15);
+
+        return new ProductResourceCollection($products);
+    }
 }

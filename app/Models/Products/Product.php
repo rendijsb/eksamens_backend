@@ -22,6 +22,7 @@ class Product extends Model
     const PRICE = 'price';
     const SALE_PRICE = 'sale_price';
     const STOCK = 'stock';
+    const SOLD = 'sold';
     const SPECIFICATIONS = 'specifications';
     const ADDITIONAL_INFO = 'additional_info';
     const STATUS = 'status';
@@ -76,12 +77,17 @@ class Product extends Model
         return $this->getAttribute(self::STOCK);
     }
 
-    public function getPrice(): string
+    public function getSold(): int
+    {
+        return $this->getAttribute(self::SOLD);
+    }
+
+    public function getPrice(): int|string
     {
         return $this->getAttribute(self::PRICE);
     }
 
-    public function getSalePrice(): string
+    public function getSalePrice(): int|string
     {
         return $this->getAttribute(self::SALE_PRICE);
     }

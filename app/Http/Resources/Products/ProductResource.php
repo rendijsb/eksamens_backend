@@ -22,6 +22,7 @@ class ProductResource extends JsonResource
             'price' => $this->resource->getPrice(),
             'sale_price' => $this->resource->getSalePrice(),
             'stock' => $this->resource->getStock(),
+            'sold' => $this->resource->getSold(),
             'specifications' => $this->resource->getSpecifications(),
             'additional_info' => $this->resource->getAdditionalInfo(),
             'status' => $this->resource->getStatus(),
