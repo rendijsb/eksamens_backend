@@ -17,7 +17,6 @@ class Banner extends Model
     const BUTTON_TEXT = 'button_text';
     const BUTTON_LINK = 'button_link';
     const IS_ACTIVE = 'is_active';
-    const SORT_ORDER = 'sort_order';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
@@ -27,12 +26,10 @@ class Banner extends Model
         self::BUTTON_TEXT,
         self::BUTTON_LINK,
         self::IS_ACTIVE,
-        self::SORT_ORDER,
     ];
 
     protected $casts = [
         self::IS_ACTIVE => 'boolean',
-        self::SORT_ORDER => 'integer',
     ];
 
     public function getId(): int
@@ -63,11 +60,6 @@ class Banner extends Model
     public function getIsActive(): bool
     {
         return $this->getAttribute(self::IS_ACTIVE);
-    }
-
-    public function getSortOrder(): int
-    {
-        return $this->getAttribute(self::SORT_ORDER);
     }
 
     public function getCreatedAt(): Carbon

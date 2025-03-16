@@ -18,7 +18,7 @@ class GetAllProductsRequest extends FormRequest
     {
         return [
             self::SEARCH => 'nullable|string|max:255',
-            self::SORT_BY => 'nullable|string|in:id,name,price,sale_price,stock,status,created_at,slug,category_id',
+            self::SORT_BY => 'nullable|string|in:id,name,price,sale_price,stock,status,created_at,slug,category_id,sold',
             self::SORT_DIR => 'nullable|string|in:asc,desc',
             self::CATEGORY_ID => 'nullable|integer|exists:categories,id',
             self::STATUS => 'nullable|string|in:active,inactive',

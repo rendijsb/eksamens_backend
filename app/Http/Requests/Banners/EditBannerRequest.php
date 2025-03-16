@@ -12,7 +12,6 @@ class EditBannerRequest extends FormRequest
     const BANNER_ID = 'bannerId';
     const TITLE = 'title';
     const SUBTITLE = 'subtitle';
-    const SORT_ORDER = 'sort_order';
     const IS_ACTIVE = 'is_active';
     const BUTTON_TEXT = 'button_text';
     const BUTTON_LINK = 'button_link';
@@ -23,7 +22,6 @@ class EditBannerRequest extends FormRequest
         return [
             self::TITLE => 'required|string|max:255',
             self::SUBTITLE => 'required|string|max:255',
-            self::SORT_ORDER => 'required',
             self::IS_ACTIVE => 'required|boolean',
             self::BUTTON_TEXT => 'required|string',
             self::BUTTON_LINK => 'required|string',
@@ -44,11 +42,6 @@ class EditBannerRequest extends FormRequest
     public function getSubtitle(): string
     {
         return $this->input(self::SUBTITLE);
-    }
-
-    public function getSortOrder(): string
-    {
-        return $this->input(self::SORT_ORDER);
     }
 
     public function getIsActive(): bool

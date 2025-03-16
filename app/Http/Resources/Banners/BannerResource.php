@@ -20,7 +20,6 @@ class BannerResource extends JsonResource
             'subtitle' => $this->resource->getSubtitle(),
             'button_link' => $this->resource->getButtonLink(),
             'button_text' => $this->resource->getButtonText(),
-            'sort_order' => $this->resource->getSortOrder(),
             'is_active' => $this->resource->getIsActive(),
             'created_at' => $this->resource->getCreatedAt(),
             'image_link' => url('/' . ImageTypeEnum::BANNER->value . '/image/' . $this->resource->getRelatedImage()?->getImageLink()),

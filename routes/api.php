@@ -80,4 +80,8 @@ Route::prefix('public')->group(function () {
     Route::prefix('products')->group(function () {
         Route::get('getAllPopularActiveProducts', [ProductController::class, 'getAllPopularActiveProducts']);
     });
+
+    Route::prefix('banners')->group(function () {
+        Route::get('getAllActiveBanners', [BannerController::class, 'getAllActiveBanners']);
+    });
 });

@@ -35,7 +35,6 @@ class BannerController extends Controller
                 $q->where(Banner::BUTTON_LINK, 'like', "%{$searchTerm}%")
                     ->orWhere(Banner::BUTTON_TEXT, 'like', "%{$searchTerm}%")
                     ->orWhere(Banner::SUBTITLE, 'like', "%{$searchTerm}%")
-                    ->orWhere(Banner::SORT_ORDER, 'like', "%{$searchTerm}%")
                     ->orWhere(Banner::TITLE, 'like', "%{$searchTerm}%");
             });
         }
@@ -59,7 +58,6 @@ class BannerController extends Controller
         $banner = Banner::create([
             Banner::TITLE => $request->getTitle(),
             Banner::SUBTITLE => $request->getSubtitle(),
-            Banner::SORT_ORDER => $request->getSortOrder(),
             Banner::IS_ACTIVE => $request->getIsActive(),
             Banner::BUTTON_TEXT => $request->getButtonText(),
             Banner::BUTTON_LINK => $request->getButtonLink(),
@@ -92,7 +90,6 @@ class BannerController extends Controller
         $banner->update([
             Banner::TITLE => $request->getTitle(),
             Banner::SUBTITLE => $request->getSubtitle(),
-            Banner::SORT_ORDER => $request->getSortOrder(),
             Banner::IS_ACTIVE => $request->getIsActive(),
             Banner::BUTTON_TEXT => $request->getButtonText(),
             Banner::BUTTON_LINK => $request->getButtonLink(),
@@ -118,5 +115,15 @@ class BannerController extends Controller
         $banner->delete();
 
         return new JsonResponse([], 204);
+    }
+
+    public function getAllActiveBanners(): BannerResourceCollection
+    {
+        $query = Banner::query();
+
+        $banners = $query->where(Banner::IS_ACTIVE, true)
+            ->paginate(15);
+
+        return new BannerResourceCollection($banners);
     }
 }
