@@ -69,6 +69,7 @@ class ProductController extends Controller
             Product::SPECIFICATIONS => $request->getSpecifications(),
             Product::ADDITIONAL_INFO => $request->getAdditionalInfo(),
             Product::STATUS => $request->getStatus() ?: ProductEnum::INACTIVE->value,
+            Product::SALE_ENDS_AT => $request->getSaleEndsAt(),
         ]);
 
         return new ProductResource($product);
@@ -110,6 +111,7 @@ class ProductController extends Controller
             Product::SPECIFICATIONS => $request->getSpecifications(),
             Product::ADDITIONAL_INFO => $request->getAdditionalInfo(),
             Product::STATUS => $request->getStatus(),
+            Product::SALE_ENDS_AT => $request->getSaleEndsAt(),
         ]);
 
         return new ProductResource($product);

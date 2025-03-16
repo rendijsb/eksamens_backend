@@ -28,6 +28,8 @@ class ProductResource extends JsonResource
             'status' => $this->resource->getStatus(),
             'category' => $this->resource->getRelatedCategory()->getName(),
             'primary_image' => url('/' . ImageTypeEnum::PRODUCT->value . '/image/' . $this->resource->getRelatedPrimaryImage()?->getImageLink()),
+            'is_sale_active' => $this->resource->isSaleActive(),
+            'sale_ends_at' => $this->resource->getSaleEndsAt(),
             'category_id' => $this->resource->getCategoryId(),
             'created_at' => $this->resource->getCreatedAt(),
         ];

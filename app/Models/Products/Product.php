@@ -26,6 +26,7 @@ class Product extends Model
     const SPECIFICATIONS = 'specifications';
     const ADDITIONAL_INFO = 'additional_info';
     const STATUS = 'status';
+    const SALE_ENDS_AT = 'sale_ends_at';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
@@ -40,6 +41,7 @@ class Product extends Model
         self::SPECIFICATIONS,
         self::ADDITIONAL_INFO,
         self::STATUS,
+        self::SALE_ENDS_AT,
     ];
 
     public function getName(): string
@@ -87,7 +89,7 @@ class Product extends Model
         return $this->getAttribute(self::PRICE);
     }
 
-    public function getSalePrice(): int|string
+    public function getSalePrice(): int|string|null
     {
         return $this->getAttribute(self::SALE_PRICE);
     }
@@ -139,5 +141,32 @@ class Product extends Model
         }
 
         return $primary;
+    }
+
+    public function getSaleEndsAt(): ?Carbon
+    {
+        $date = $this->getAttribute(self::SALE_ENDS_AT);
+        return $date ? new Carbon($date) : null;
+    }
+
+    public function isSaleActive(): bool
+    {
+        $salePrice = $this->getAttribute(self::SALE_PRICE);
+        $saleEndsAt = $this->getAttribute(self::SALE_ENDS_AT);
+
+        if (!$salePrice) {
+            return false;
+        }
+
+        if (!$saleEndsAt) {
+            return true;
+        }
+
+        return Carbon::now()->lt(new Carbon($saleEndsAt));
+    }
+
+    public function getEffectivePrice(): string|int
+    {
+        return $this->isSaleActive() ? $this->getSalePrice() : $this->getPrice();
     }
 }

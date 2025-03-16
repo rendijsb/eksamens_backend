@@ -17,6 +17,7 @@ class CreateProductRequest extends FormRequest
     const SPECIFICATIONS = 'specifications';
     const ADDITIONAL_INFO = 'additional_info';
     const STATUS = 'status';
+    const SALE_ENDS_AT = 'sale_ends_at';
 
     public function rules(): array
     {
@@ -30,6 +31,7 @@ class CreateProductRequest extends FormRequest
             self::SPECIFICATIONS => 'nullable',
             self::ADDITIONAL_INFO => 'nullable',
             self::STATUS => 'nullable|in:active,inactive',
+            self::SALE_ENDS_AT => 'nullable|date|after:now',
         ];
     }
 
@@ -76,5 +78,10 @@ class CreateProductRequest extends FormRequest
     public function getStatus(): ?string
     {
         return $this->input(self::STATUS);
+    }
+
+    public function getSaleEndsAt(): ?string
+    {
+        return $this->input(self::SALE_ENDS_AT);
     }
 }
