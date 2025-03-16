@@ -121,4 +121,26 @@ class ImageController extends Controller
             Image::IS_PRIMARY => true
         ]);
     }
+
+    public function handleSingleImageUpload(int $relatedId, UploadedFile $imageFile, string $type): void
+    {
+        $existingImages = Image::where(Image::RELATED_ID, $relatedId)
+            ->where(Image::TYPE, $type)
+            ->get();
+
+        foreach ($existingImages as $image) {
+            Storage::delete('public/' . $type . '/' . $image->getImageLink());
+            $image->delete();
+        }
+
+        $filename = Str::uuid() . '.' . $imageFile->getClientOriginalExtension();
+        $imageFile->storeAs('public/' . $type, $filename);
+
+        Image::create([
+            Image::RELATED_ID => $relatedId,
+            Image::TYPE => $type,
+            Image::IMAGE_LINK => $filename,
+            Image::IS_PRIMARY => true
+        ]);
+    }
 }

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Banners\BannerController;
 use App\Http\Controllers\Categories\CategoryController;
 use App\Http\Controllers\Images\ImageController;
 use App\Http\Controllers\Products\ProductController;
@@ -59,6 +60,16 @@ Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderato
         Route::post('upload/{relatedId}', [ImageController::class, 'uploadImages']);
         Route::patch('set-primary/{imageId}', [ImageController::class, 'setPrimaryImage']);
         Route::delete('delete/{imageId}', [ImageController::class, 'deleteImage']);
+    });
+
+Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderator'])
+    ->prefix('banners')
+    ->group(function () {
+        Route::get('getAll', [BannerController::class, 'getAllBanners']);
+        Route::post('create', [BannerController::class, 'createBanner']);
+        Route::get('{bannerId}', [BannerController::class, 'getBannerById']);
+        Route::post('edit/{bannerId}', [BannerController::class, 'editBanner']);
+        Route::delete('delete/{bannerId}', [BannerController::class, 'deleteBanner']);
     });
 
 Route::prefix('public')->group(function () {

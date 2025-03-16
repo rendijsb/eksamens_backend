@@ -8,6 +8,7 @@ enum ImageTypeEnum: string
 {
     case PRODUCT = 'product';
     case CATEGORY = 'category';
+    case BANNER = 'banner';
 
     public static function getRegexPattern(): string
     {
