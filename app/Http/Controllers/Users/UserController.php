@@ -63,7 +63,7 @@ class UserController extends Controller
             $query->orderBy('users.' . $sortField, $sortDirection);
         }
 
-        $users = $query->paginate(15);
+        $users = $query->paginate(10);
 
         return new UserResourceCollection($users);
     }

@@ -45,7 +45,7 @@ class CategoryController extends Controller
 
         $query->orderBy($sortField, $sortDirection);
 
-        $categories = $query->paginate(15);
+        $categories = $query->paginate(10);
 
         return new CategoryResourceCollection($categories);
     }
@@ -132,7 +132,7 @@ class CategoryController extends Controller
             $q->where('status', 'active');
         });
 
-        $categories = $query->paginate(15);
+        $categories = $query->paginate(10);
 
         return new CategoryResourceCollection($categories);
     }

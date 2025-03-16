@@ -48,7 +48,7 @@ class BannerController extends Controller
 
         $query->orderBy($sortField, $sortDirection);
 
-        $banners = $query->paginate(15);
+        $banners = $query->paginate(10);
 
         return new BannerResourceCollection($banners);
     }
@@ -122,7 +122,7 @@ class BannerController extends Controller
         $query = Banner::query();
 
         $banners = $query->where(Banner::IS_ACTIVE, true)
-            ->paginate(15);
+            ->paginate(10);
 
         return new BannerResourceCollection($banners);
     }

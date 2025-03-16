@@ -38,7 +38,7 @@ class EditCategoryRequest extends FormRequest
         return $this->input(self::DESCRIPTION);
     }
 
-    public function getImage(): UploadedFile
+    public function getImage(): ?UploadedFile
     {
         return $this->file(self::IMAGE);
     }

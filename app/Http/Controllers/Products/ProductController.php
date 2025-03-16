@@ -45,7 +45,7 @@ class ProductController extends Controller
 
         $query->orderBy($sortField, $sortDirection);
 
-        $products = $query->paginate(15);
+        $products = $query->paginate(10);
 
         return new ProductResourceCollection($products);
     }
@@ -134,7 +134,7 @@ class ProductController extends Controller
 
         $products = $query->where(Product::STATUS, ProductEnum::ACTIVE->value)
             ->orderBy(Product::SOLD, 'desc')
-            ->paginate(15);
+            ->paginate(10);
 
         return new ProductResourceCollection($products);
     }
