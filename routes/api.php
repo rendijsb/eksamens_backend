@@ -79,6 +79,7 @@ Route::prefix('public')->group(function () {
 
     Route::prefix('products')->group(function () {
         Route::get('getAllPopularActiveProducts', [ProductController::class, 'getAllPopularActiveProducts']);
+        Route::get('getAllSearchableProducts', [ProductController::class, 'getAllSearchableProducts']);
     });
 
     Route::prefix('banners')->group(function () {

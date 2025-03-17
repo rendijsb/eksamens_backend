@@ -10,6 +10,7 @@ use App\Http\Requests\Products\CreateProductRequest;
 use App\Http\Requests\Products\DeleteProductRequest;
 use App\Http\Requests\Products\EditProductRequest;
 use App\Http\Requests\Products\GetAllProductsRequest;
+use App\Http\Requests\Products\GetAllSearchableProductsRequest;
 use App\Http\Requests\Products\GetProductByIdRequest;
 use App\Http\Resources\Products\ProductResource;
 use App\Http\Resources\Products\ProductResourceCollection;
@@ -135,6 +136,43 @@ class ProductController extends Controller
         $products = $query->where(Product::STATUS, ProductEnum::ACTIVE->value)
             ->orderBy(Product::SOLD, 'desc')
             ->paginate(10);
+
+        return new ProductResourceCollection($products);
+    }
+
+    public function getAllSearchableProducts(GetAllSearchableProductsRequest $request): ProductResourceCollection
+    {
+        $query = Product::query();
+
+        if ($request->getSearch()) {
+            $searchTerm = $request->getSearch();
+            $query->where(function($q) use ($searchTerm) {
+                $q->where(Product::NAME, 'like', "%{$searchTerm}%")
+                    ->orWhere(Product::DESCRIPTION, 'like', "%{$searchTerm}%")
+                    ->orWhere(Product::SLUG, 'like', "%{$searchTerm}%");
+            });
+        }
+
+        if ($request->getCategoryId()) {
+            $query->where(Product::CATEGORY_ID, $request->getCategoryId());
+        }
+
+        if ($request->getMinPrice() !== null) {
+            $query->where(Product::PRICE, '>=', $request->getMinPrice());
+        }
+
+        if ($request->getMaxPrice() !== null) {
+            $query->where(Product::PRICE, '<=', $request->getMaxPrice());
+        }
+
+        $sortField = $request->getSortBy();
+        $sortDirection = $request->getSortDir();
+
+        $query->orderBy($sortField, $sortDirection);
+
+        $query->where(Product::STATUS, ProductEnum::ACTIVE->value);
+
+        $products = $query->paginate($request->getPerPage());
 
         return new ProductResourceCollection($products);
     }
