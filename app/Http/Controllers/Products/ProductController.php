@@ -12,6 +12,8 @@ use App\Http\Requests\Products\EditProductRequest;
 use App\Http\Requests\Products\GetAllProductsRequest;
 use App\Http\Requests\Products\GetAllSearchableProductsRequest;
 use App\Http\Requests\Products\GetProductByIdRequest;
+use App\Http\Requests\Products\GetProductBySlugRequest;
+use App\Http\Requests\Products\GetRelatedProductsRequest;
 use App\Http\Resources\Products\ProductResource;
 use App\Http\Resources\Products\ProductResourceCollection;
 use App\Models\Products\Product;
@@ -173,6 +175,37 @@ class ProductController extends Controller
         $query->where(Product::STATUS, ProductEnum::ACTIVE->value);
 
         $products = $query->paginate($request->getPerPage());
+
+        return new ProductResourceCollection($products);
+    }
+
+    public function getProductBySlug(GetProductBySlugRequest $request): ProductResource|JsonResponse
+    {
+        $product = Product::where(Product::SLUG, $request->getSlug())->first();
+
+        if ($product->getStatus() !== ProductEnum::ACTIVE->value) {
+            return response()->json(['message' => 'Product with this slug is not active'], 422);
+        }
+
+        return new ProductResource($product);
+    }
+
+    public function getRelatedProducts(GetRelatedProductsRequest $request): ProductResourceCollection
+    {
+        $query = Product::query();
+
+        $query->where(Product::CATEGORY_ID, $request->getCategoryId());
+
+        if ($request->getExcludeId()) {
+            $query->where(Product::ID, '!=', $request->getExcludeId());
+        }
+
+        $query->where(Product::STATUS, ProductEnum::ACTIVE->value);
+
+        $query->orderBy(Product::SOLD, 'desc')
+            ->orderBy(Product::CREATED_AT, 'desc');
+
+        $products = $query->limit($request->getLimit())->get();
 
         return new ProductResourceCollection($products);
     }

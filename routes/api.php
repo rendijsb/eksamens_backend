@@ -80,6 +80,17 @@ Route::prefix('public')->group(function () {
     Route::prefix('products')->group(function () {
         Route::get('getAllPopularActiveProducts', [ProductController::class, 'getAllPopularActiveProducts']);
         Route::get('getAllSearchableProducts', [ProductController::class, 'getAllSearchableProducts']);
+        Route::get('getRelatedProducts', [ProductController::class, 'getRelatedProducts']);
+
+        Route::prefix('{slug}')->group(function () {
+            Route::get('', [ProductController::class, 'getProductBySlug']);
+        });
+
+        Route::prefix('images')->group(function () {
+            Route::prefix('{relatedId}')->group(function () {
+                Route::get('', [ImageController::class, 'getImages']);
+            });
+        });
     });
 
     Route::prefix('banners')->group(function () {
