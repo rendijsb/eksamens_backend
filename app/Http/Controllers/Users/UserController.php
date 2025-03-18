@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Users;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Users\ChangeProfilePasswordRequest;
 use App\Http\Requests\Users\CreateUserRequest;
 use App\Http\Requests\Users\DeleteUserRequest;
 use App\Http\Requests\Users\EditUserRequest;
 use App\Http\Requests\Users\GetAllUsersRequest;
 use App\Http\Requests\Users\GetUserByIdRequest;
+use App\Http\Requests\Users\UpdateUserProfileRequest;
 use App\Http\Resources\Auth\UserResource;
 use App\Http\Resources\Auth\UserResourceCollection;
 use App\Models\Users\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -119,5 +122,34 @@ class UserController extends Controller
         $user->update($updateData);
 
         return new UserResource($user);
+    }
+
+    public function getUserProfile(): UserResource
+    {
+        return new UserResource(auth()->user());
+    }
+
+    public function updateUserProfile(UpdateUserProfileRequest $request): UserResource
+    {
+        $user = auth()->user();
+
+        $user->update([
+            User::NAME => $request->getName(),
+            User::EMAIL => $request->getEmail(),
+            User::PHONE => $request->getPhone(),
+        ]);
+
+        return  new UserResource($user);
+    }
+
+    public function changePassword(ChangeProfilePasswordRequest $request): JsonResponse
+    {
+        $user = auth()->user();
+
+        $user->update([
+            User::PASSWORD => Hash::make($request->getNewPassword()),
+        ]);
+
+        return response()->json(Response::HTTP_NO_CONTENT);
     }
 }

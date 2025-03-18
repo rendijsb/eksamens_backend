@@ -97,3 +97,11 @@ Route::prefix('public')->group(function () {
         Route::get('getAllActiveBanners', [BannerController::class, 'getAllActiveBanners']);
     });
 });
+
+Route::prefix('profile')->group(function () {
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('', [UserController::class, 'getUserProfile']);
+        Route::post('update', [UserController::class, 'updateUserProfile']);
+        Route::post('change-password', [UserController::class, 'changePassword']);
+    });
+});
