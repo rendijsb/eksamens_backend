@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Auth;
 
+use App\Enums\Images\ImageTypeEnum;
 use App\Models\Users\User;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -20,6 +21,7 @@ class UserResource extends JsonResource
             'role' => $this->resource->getRoleId(),
             'phone' => $this->resource->getPhone(),
             'created_at' => $this->resource->getCreatedAt(),
+            'profile_image' => url('/' . ImageTypeEnum::PROFILE->value . '/image/' . $this->resource->getProfileImage()),
         ];
 
         if ($this->token) {

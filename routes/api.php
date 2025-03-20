@@ -103,5 +103,7 @@ Route::prefix('profile')->group(function () {
         Route::get('', [UserController::class, 'getUserProfile']);
         Route::post('update', [UserController::class, 'updateUserProfile']);
         Route::post('change-password', [UserController::class, 'changePassword']);
+        Route::post('update-image', [UserController::class, 'updateProfileImage']);
+        Route::delete('remove-image', [UserController::class, 'removeProfileImage']);
     });
 });

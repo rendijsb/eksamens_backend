@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Users;
 
+use App\Enums\Images\ImageTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Users\ChangeProfilePasswordRequest;
 use App\Http\Requests\Users\CreateUserRequest;
@@ -11,6 +12,7 @@ use App\Http\Requests\Users\DeleteUserRequest;
 use App\Http\Requests\Users\EditUserRequest;
 use App\Http\Requests\Users\GetAllUsersRequest;
 use App\Http\Requests\Users\GetUserByIdRequest;
+use App\Http\Requests\Users\UpdateProfileImageRequest;
 use App\Http\Requests\Users\UpdateUserProfileRequest;
 use App\Http\Resources\Auth\UserResource;
 use App\Http\Resources\Auth\UserResourceCollection;
@@ -18,6 +20,8 @@ use App\Models\Users\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -151,5 +155,40 @@ class UserController extends Controller
         ]);
 
         return response()->json(Response::HTTP_NO_CONTENT);
+    }
+
+    public function updateProfileImage(UpdateProfileImageRequest $request): UserResource
+    {
+        /** @var User $user */
+        $user = auth()->user();
+
+        if ($user->getProfileImage()) {
+            Storage::delete('public/' . ImageTypeEnum::PROFILE->value . '/' . $user->getProfileImage());
+        }
+
+        $imageName = Str::uuid() . '.' . $request->getProfileImage()->getClientOriginalExtension();
+        $request->getProfileImage()->storeAs('public/' . ImageTypeEnum::PROFILE->value, $imageName);
+
+        $user->update([
+            User::PROFILE_IMAGE => $imageName
+        ]);
+
+        return new UserResource($user->fresh());
+    }
+
+    public function removeProfileImage(): UserResource
+    {
+        /** @var User $user */
+        $user = auth()->user();
+
+        if ($user->getProfileImage()) {
+            Storage::delete('public/' . ImageTypeEnum::PROFILE->value . '/' . $user->getProfileImage());
+
+            $user->update([
+                User::PROFILE_IMAGE => null
+            ]);
+        }
+
+        return new UserResource($user->fresh());
     }
 }

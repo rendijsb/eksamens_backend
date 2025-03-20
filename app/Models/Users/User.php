@@ -23,6 +23,7 @@ class User extends Authenticatable
     const EMAIL = 'email';
     const PASSWORD = 'password';
     const PHONE = 'phone';
+    const PROFILE_IMAGE = 'profile_image';
     const ROLE_ID = 'role_id';
     const REMEMBER_TOKEN = 'remember_token';
     const EMAIL_VERIFIED_AT = 'email_verified_at';
@@ -38,6 +39,7 @@ class User extends Authenticatable
         self::PASSWORD,
         self::ROLE_ID,
         self::PHONE,
+        self::PROFILE_IMAGE,
     ];
 
     /**
@@ -96,5 +98,10 @@ class User extends Authenticatable
     public function getId(): int
     {
         return $this->getAttribute(self::ID);
+    }
+
+    public function getProfileImage(): ?string
+    {
+        return $this->getAttribute(self::PROFILE_IMAGE);
     }
 }
