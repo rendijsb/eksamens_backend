@@ -106,4 +106,13 @@ Route::prefix('profile')->group(function () {
         Route::post('update-image', [UserController::class, 'updateProfileImage']);
         Route::delete('remove-image', [UserController::class, 'removeProfileImage']);
     });
+
+    Route::middleware('auth:sanctum')->prefix('addresses')->group(function () {
+        Route::get('', [App\Http\Controllers\Addresses\AddressController::class, 'getUserAddresses']);
+        Route::post('create', [App\Http\Controllers\Addresses\AddressController::class, 'createAddress']);
+        Route::get('{addressId}', [App\Http\Controllers\Addresses\AddressController::class, 'getAddressById']);
+        Route::put('{addressId}', [App\Http\Controllers\Addresses\AddressController::class, 'updateAddress']);
+        Route::delete('{addressId}', [App\Http\Controllers\Addresses\AddressController::class, 'deleteAddress']);
+        Route::patch('{addressId}/set-default', [App\Http\Controllers\Addresses\AddressController::class, 'setDefaultAddress']);
+    });
 });
