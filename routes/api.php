@@ -116,3 +116,13 @@ Route::prefix('profile')->group(function () {
         Route::patch('{addressId}/set-default', [App\Http\Controllers\Addresses\AddressController::class, 'setDefaultAddress']);
     });
 });
+
+Route::prefix('cart')->group(function () {
+    Route::get('/', [App\Http\Controllers\Carts\CartController::class, 'getCart']);
+    Route::post('/add', [App\Http\Controllers\Carts\CartController::class, 'addToCart']);
+    Route::patch('/update/{item_id}', [App\Http\Controllers\Carts\CartController::class, 'updateCartItem']);
+    Route::delete('/remove/{item_id}', [App\Http\Controllers\Carts\CartController::class, 'removeFromCart']);
+    Route::delete('/clear', [App\Http\Controllers\Carts\CartController::class, 'clearCart']);
+
+    Route::post('/migrate', [App\Http\Controllers\Carts\CartController::class, 'migrateCart'])->middleware('auth:sanctum');
+});
