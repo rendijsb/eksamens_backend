@@ -8,6 +8,9 @@ use Illuminate\Console\Command;
 
 class CleanupCarts extends Command
 {
+    protected $signature = 'carts:cleanup';
+    protected $description = 'Clean up abandoned carts older than 30 days';
+
     public function handle(): void
     {
         $cutoffDate = now()->subDays(30);
