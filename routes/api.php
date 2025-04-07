@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Banners\BannerController;
 use App\Http\Controllers\Categories\CategoryController;
+use App\Http\Controllers\Checkout\CheckoutController;
 use App\Http\Controllers\Images\ImageController;
+use App\Http\Controllers\Orders\OrderController;
 use App\Http\Controllers\Products\ProductController;
 use App\Http\Controllers\Users\AuthController;
 use App\Http\Controllers\Users\UserController;
@@ -125,4 +127,23 @@ Route::prefix('cart')->group(function () {
     Route::delete('/clear', [App\Http\Controllers\Carts\CartController::class, 'clearCart']);
 
     Route::post('/migrate', [App\Http\Controllers\Carts\CartController::class, 'migrateCart'])->middleware('auth:sanctum');
+});
+
+Route::prefix('checkout')->group(function () {
+    Route::post('/initiate', [CheckoutController::class, 'initiateCheckout']);
+    Route::post('/payment', [CheckoutController::class, 'processPayment']);
+    Route::post('/webhook/stripe', [CheckoutController::class, 'handleStripeWebhook']);
+});
+
+Route::prefix('orders')->group(function () {
+    Route::get('/guest', [OrderController::class, 'getGuestOrders']);
+    Route::get('/guest/{orderNumber}', [OrderController::class, 'getOrderByNumber']);
+    Route::post('/guest/{orderId}/cancel', [OrderController::class, 'cancelOrder']);
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/', [OrderController::class, 'getUserOrders']);
+        Route::get('/{orderId}', [OrderController::class, 'getOrderById']);
+        Route::get('/number/{orderNumber}', [OrderController::class, 'getOrderByNumber']);
+        Route::post('/{orderId}/cancel', [OrderController::class, 'cancelOrder']);
+    });
 });
