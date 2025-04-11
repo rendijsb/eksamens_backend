@@ -49,7 +49,7 @@ class CartController extends Controller
         $response = response()->json(['data' => $cartResource]);
 
         if (!$userId && !$request->cookie('cart_session_id')) {
-            $response->cookie('cart_session_id', $cart->getSessionId(), 60 * 24 * 30);
+            $response->cookie('cart_session_id', $cart->getSessionId(), 60 * 24 * 30, '/', null, null, false, false, 'Lax');
         }
 
         return $response;
