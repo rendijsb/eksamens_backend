@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Orders;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Orders\GetAllOrdersRequest;
 use App\Http\Resources\Orders\OrderResource;
 use App\Http\Resources\Orders\OrderResourceCollection;
+use App\Models\Orders\Order;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -133,5 +135,19 @@ class OrderController extends Controller
                 'message' => 'Failed to cancel order: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function getAllOrders(GetAllOrdersRequest $request): OrderResourceCollection
+    {
+        $query = Order::query();
+
+        $sortField = $request->getSortBy();
+        $sortDirection = $request->getSortDir();
+
+        $query->orderBy($sortField, $sortDirection);
+
+        $orders = $query->paginate(10);
+
+        return new OrderResourceCollection($orders);
     }
 }

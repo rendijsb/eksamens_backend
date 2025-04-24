@@ -7,11 +7,14 @@ namespace App\Services;
 use App\Enums\Orders\OrderStatusEnum;
 use App\Enums\Payments\PaymentStatusEnum;
 use App\Models\Carts\Cart;
+use App\Models\Carts\CartItem;
 use App\Models\Orders\Order;
 use App\Models\Orders\OrderItem;
 use App\Models\Orders\PaymentTransaction;
+use App\Models\Products\Product;
 use App\Models\Users\Address;
 use App\Models\Users\User;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -27,6 +30,26 @@ class OrderService
     public function createOrderFromCart(Cart $cart, array $orderData): Order
     {
         return DB::transaction(function () use ($cart, $orderData) {
+            $insufficientStockItems = [];
+            foreach ($cart->items as $cartItem) {
+                $product = Product::find($cartItem->getProductId());
+                if (!$product || $product->getStock() < $cartItem->getQuantity()) {
+                    $insufficientStockItems[] = [
+                        'product_name' => $product ? $product->getName() : 'Unknown Product',
+                        'requested_quantity' => $cartItem->getQuantity(),
+                        'available_stock' => $product ? $product->getStock() : 0
+                    ];
+                }
+            }
+
+            if (!empty($insufficientStockItems)) {
+                $errorMessages = [];
+                foreach ($insufficientStockItems as $item) {
+                    $errorMessages[] = "Nepietiek noliktavā: {$item['product_name']} - Pieprasīts: {$item['requested_quantity']}, Pieejams: {$item['available_stock']}";
+                }
+                throw new Exception(implode("\n", $errorMessages));
+            }
+
             $orderNumber = $this->generateOrderNumber();
 
             $shippingAddressDetails = $this->formatAddressDetails($orderData['shipping_address']);
@@ -63,8 +86,6 @@ class OrderService
                 ]);
             }
 
-            $this->cartService->clearCart($cart);
-
             return $order;
         });
     }
@@ -96,6 +117,14 @@ class OrderService
             ]);
 
             if ($status === PaymentStatusEnum::PAID->value) {
+                $user = User::find($order->getUserId());
+                if ($user) {
+                    $cart = Cart::where(Cart::USER_ID, $user->getId())->first();
+                    if ($cart) {
+                        CartItem::where(CartItem::CART_ID, $cart->getId())->delete();
+                    }
+                }
+
                 $this->updateProductInventory($order);
             }
 

@@ -46,7 +46,6 @@ class CartService
 
             if ($cartItem) {
                 $newQuantity = $cartItem->getQuantity() + $quantity;
-
                 if ($newQuantity > $product->getStock()) {
                     $newQuantity = $product->getStock();
                 }
@@ -57,15 +56,17 @@ class CartService
                     CartItem::SALE_PRICE => $product->isSaleActive() ? $product->getSalePrice() : null,
                 ]);
             } else {
+                $safeQuantity = min($quantity, $product->getStock());
+
                 $cartItem = CartItem::create([
                     CartItem::CART_ID => $cart->getId(),
                     CartItem::PRODUCT_ID => $product->getId(),
-                    CartItem::QUANTITY => $quantity,
+                    CartItem::QUANTITY => $safeQuantity,
                     CartItem::PRICE => $product->getPrice(),
                     CartItem::SALE_PRICE => $product->isSaleActive() ? $product->getSalePrice() : null,
                     CartItem::TOTAL_PRICE => $product->isSaleActive()
-                        ? (float) $product->getSalePrice() * $quantity
-                        : (float) $product->getPrice() * $quantity,
+                        ? (float) $product->getSalePrice() * $safeQuantity
+                        : (float) $product->getPrice() * $safeQuantity,
                 ]);
             }
 

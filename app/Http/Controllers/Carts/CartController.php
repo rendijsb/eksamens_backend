@@ -38,10 +38,16 @@ class CartController extends Controller
         $cartItem = $this->cartService->addItem($cart, $request->getProductId(), $request->getQuantity());
 
         if (!$cartItem) {
-            return response()->json(['message' => 'Failed to add item to cart'], 400);
+            return response()->json([
+                'message' => 'Nepietiekams daudzums noliktavā vai produkts nav pieejams',
+                'success' => false
+            ], 400);
         }
 
-        return response()->json(['data' => new CartResource($cart->fresh(['items.product']))]);
+        return response()->json([
+            'data' => new CartResource($cart->fresh(['items.product'])),
+            'success' => true
+        ]);
     }
 
     public function updateCartItem(UpdateCartItemRequest $request): JsonResponse
@@ -53,17 +59,26 @@ class CartController extends Controller
             return response()->json(['message' => 'Cart not found'], 404);
         }
 
-        $cartItem = $this->cartService->updateItemQuantity($cart, $request->getItemId(), $request->getQuantity());
+        $quantity = $request->getQuantity();
 
-        if ($request->getQuantity() <= 0) {
+        if ($quantity <= 0) {
+            $this->cartService->removeItem($cart, $request->getItemId());
             return response()->json(['data' => new CartResource($cart->fresh(['items.product']))]);
         }
 
-        if (!$cartItem) {
-            return response()->json(['message' => 'Failed to update item in cart'], 400);
+        $cartItem = $this->cartService->updateItemQuantity($cart, $request->getItemId(), $quantity);
+
+        if (!$cartItem && $quantity > 0) {
+            return response()->json([
+                'message' => 'Nepietiekams daudzums noliktavā vai produkts nav pieejams',
+                'success' => false
+            ], 400);
         }
 
-        return response()->json(['data' => new CartResource($cart->fresh(['items.product']))]);
+        return response()->json([
+            'data' => new CartResource($cart->fresh(['items.product'])),
+            'success' => true
+        ]);
     }
 
     public function removeFromCart(int $itemId, Request $request): JsonResponse

@@ -136,6 +136,7 @@ class ProductController extends Controller
         $query = Product::query();
 
         $products = $query->where(Product::STATUS, ProductEnum::ACTIVE->value)
+            ->where(Product::STOCK, '>', 0)
             ->orderBy(Product::SOLD, 'desc')
             ->paginate(10);
 
@@ -165,6 +166,12 @@ class ProductController extends Controller
 
         if ($request->getMaxPrice() !== null) {
             $query->where(Product::PRICE, '<=', $request->getMaxPrice());
+        }
+
+        if ($request->has('in_stock')) {
+            if ($request->get('in_stock')) {
+                $query->where(Product::STOCK, '>', 0);
+            }
         }
 
         $sortField = $request->getSortBy();
