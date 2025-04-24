@@ -8,56 +8,27 @@ use App\Models\Carts\Cart;
 use App\Models\Carts\CartItem;
 use App\Models\Products\Product;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class CartService
 {
-    public function getOrCreateCart(?int $userId, ?string $sessionId): Cart
+    public function getOrCreateCart(int $userId): Cart
     {
-        if ($userId) {
-            $cart = Cart::where(Cart::USER_ID, $userId)->first();
+        $cart = Cart::where(Cart::USER_ID, $userId)->first();
 
-            if ($cart) {
-                return $cart;
-            }
-
-            if ($sessionId) {
-                $sessionCart = Cart::where(Cart::SESSION_ID, $sessionId)->first();
-
-                if ($sessionCart) {
-                    $sessionCart->update([Cart::USER_ID => $userId]);
-                    return $sessionCart;
-                }
-            }
-        } elseif ($sessionId) {
-            $cart = Cart::where(Cart::SESSION_ID, $sessionId)->first();
-
-            if ($cart) {
-                return $cart;
-            }
+        if ($cart) {
+            return $cart;
         }
-
-        $newSessionId = $sessionId ?? Str::uuid()->toString();
 
         return Cart::create([
             Cart::USER_ID => $userId,
-            Cart::SESSION_ID => $newSessionId,
         ]);
     }
 
-    public function getCart(?int $userId, ?string $sessionId): ?Cart
+    public function getCart(int $userId): ?Cart
     {
-        $query = Cart::query();
-
-        if ($userId) {
-            $query->where(Cart::USER_ID, $userId);
-        } elseif ($sessionId) {
-            $query->where(Cart::SESSION_ID, $sessionId);
-        } else {
-            return null;
-        }
-
-        return $query->with('items.product')->first();
+        return Cart::where(Cart::USER_ID, $userId)
+            ->with('items.product')
+            ->first();
     }
 
     public function addItem(Cart $cart, int $productId, int $quantity = 1): ?CartItem
@@ -149,51 +120,6 @@ class CartService
     {
         return DB::transaction(function() use ($cart) {
             return (bool) CartItem::where(CartItem::CART_ID, $cart->getId())->delete();
-        });
-    }
-
-    public function migrateCart(string $sessionId, int $userId): ?Cart
-    {
-        $sessionCart = Cart::where(Cart::SESSION_ID, $sessionId)->first();
-
-        if (!$sessionCart) {
-            return null;
-        }
-
-        $userCart = Cart::where(Cart::USER_ID, $userId)->first();
-
-        if (!$userCart) {
-            $sessionCart->update([Cart::USER_ID => $userId]);
-            return $sessionCart;
-        }
-
-        return DB::transaction(function () use ($sessionCart, $userCart) {
-            foreach ($sessionCart->items as $sessionItem) {
-                $userItem = CartItem::where(CartItem::CART_ID, $userCart->getId())
-                    ->where(CartItem::PRODUCT_ID, $sessionItem->getProductId())
-                    ->first();
-
-                if ($userItem) {
-                    $product = $sessionItem->product;
-                    $newQuantity = $userItem->getQuantity() + $sessionItem->getQuantity();
-
-                    if ($product && $newQuantity > $product->getStock()) {
-                        $newQuantity = $product->getStock();
-                    }
-
-                    $userItem->update([
-                        CartItem::QUANTITY => $newQuantity,
-                    ]);
-
-                    $sessionItem->delete();
-                } else {
-                    $sessionItem->update([CartItem::CART_ID => $userCart->getId()]);
-                }
-            }
-
-            $sessionCart->delete();
-
-            return $userCart;
         });
     }
 }

@@ -35,8 +35,6 @@ class Order extends Model
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
-    const GUEST_TOKEN = 'guest_token';
-
     protected $fillable = [
         self::USER_ID,
         self::ORDER_NUMBER,
@@ -53,7 +51,6 @@ class Order extends Model
         self::SHIPPING_ADDRESS_DETAILS,
         self::BILLING_ADDRESS_DETAILS,
         self::NOTES,
-        self::GUEST_TOKEN,
     ];
 
     protected $casts = [
@@ -91,7 +88,7 @@ class Order extends Model
         return $this->getAttribute(self::ID);
     }
 
-    public function getUserId(): ?int
+    public function getUserId(): int
     {
         return $this->getAttribute(self::USER_ID);
     }
@@ -166,11 +163,6 @@ class Order extends Model
         return $this->getAttribute(self::NOTES);
     }
 
-    public function getGuestToken(): ?string
-    {
-        return $this->getAttribute(self::GUEST_TOKEN);
-    }
-
     public function getCreatedAt(): Carbon
     {
         return $this->getAttribute(self::CREATED_AT);
@@ -224,10 +216,5 @@ class Order extends Model
     public function isRefunded(): bool
     {
         return $this->getPaymentStatus() === TransactionStatusEnum::REFUNDED->value;
-    }
-
-    public function isGuestOrder(): bool
-    {
-        return $this->getUserId() === null && $this->getGuestToken() !== null;
     }
 }

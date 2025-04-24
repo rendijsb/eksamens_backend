@@ -38,10 +38,8 @@ class CheckoutController extends Controller
     public function initiateCheckout(InitiateCheckoutRequest $request): JsonResponse
     {
         try {
-            $userId = $request->user()?->getId();
-            $sessionId = $request->cookie('cart_session_id');
-
-            $cart = $this->cartService->getCart($userId, $sessionId);
+            $userId = $request->user()->getId();
+            $cart = $this->cartService->getCart($userId);
 
             if (!$cart || $cart->items->isEmpty()) {
                 return response()->json([

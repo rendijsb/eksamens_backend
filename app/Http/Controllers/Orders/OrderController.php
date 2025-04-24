@@ -40,31 +40,6 @@ class OrderController extends Controller
         }
     }
 
-    public function getGuestOrders(Request $request): OrderResourceCollection|JsonResponse
-    {
-        try {
-            $token = $request->cookie('cart_session_id');
-            if (!$token) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Guest token not found'
-                ], 400);
-            }
-
-            $perPage = (int) $request->input('per_page', 10);
-            $ordersData = $this->orderService->getGuestOrders($token, $perPage);
-
-            return new OrderResourceCollection($ordersData['orders']);
-        } catch (\Exception $e) {
-            Log::error('Failed to get guest orders: ' . $e->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to get orders: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
     public function getOrderById(int $orderId, Request $request): OrderResource|JsonResponse
     {
         try {
@@ -78,14 +53,7 @@ class OrderController extends Controller
                 ], 404);
             }
 
-            if ($user && $order->getUserId() !== $user->getId() && !$user->relatedRole?->getName() == 'admin') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized to view this order'
-                ], 403);
-            }
-
-            if (!$user && $order->getGuestToken() !== $request->cookie('cart_session_id')) {
+            if ($order->getUserId() !== $user->getId() && !$user->relatedRole?->getName() == 'admin') {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthorized to view this order'
@@ -116,14 +84,7 @@ class OrderController extends Controller
                 ], 404);
             }
 
-            if ($user && $order->getUserId() !== $user->getId() && !$user->relatedRole?->getName() == 'admin') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized to view this order'
-                ], 403);
-            }
-
-            if (!$user && $order->getGuestToken() !== $request->cookie('cart_session_id')) {
+            if ($order->getUserId() !== $user->getId() && !$user->relatedRole?->getName() == 'admin') {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthorized to view this order'
@@ -154,14 +115,7 @@ class OrderController extends Controller
                 ], 404);
             }
 
-            if ($user && $order->getUserId() !== $user->getId() && !$user->relatedRole?->getName() == 'admin') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized to cancel this order'
-                ], 403);
-            }
-
-            if (!$user && $order->getGuestToken() !== $request->cookie('cart_session_id')) {
+            if ($order->getUserId() !== $user->getId() && !$user->relatedRole?->getName() == 'admin') {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthorized to cancel this order'

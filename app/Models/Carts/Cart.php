@@ -14,13 +14,11 @@ class Cart extends Model
 {
     const ID = 'id';
     const USER_ID = 'user_id';
-    const SESSION_ID = 'session_id';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
     protected $fillable = [
         self::USER_ID,
-        self::SESSION_ID,
     ];
 
     public function items(): HasMany
@@ -38,14 +36,9 @@ class Cart extends Model
         return $this->getAttribute(self::ID);
     }
 
-    public function getUserId(): ?int
+    public function getUserId(): int
     {
         return $this->getAttribute(self::USER_ID);
-    }
-
-    public function getSessionId(): ?string
-    {
-        return $this->getAttribute(self::SESSION_ID);
     }
 
     public function getCreatedAt(): Carbon

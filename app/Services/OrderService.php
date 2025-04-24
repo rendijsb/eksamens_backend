@@ -49,7 +49,6 @@ class OrderService
                 Order::SHIPPING_ADDRESS_DETAILS => $shippingAddressDetails,
                 Order::BILLING_ADDRESS_DETAILS => $billingAddressDetails,
                 Order::NOTES => $orderData['notes'] ?? null,
-                Order::GUEST_TOKEN => $cart->getSessionId(),
             ]);
 
             foreach ($cart->items as $cartItem) {
@@ -120,22 +119,6 @@ class OrderService
     {
         $orders = Order::with(['items'])
             ->where(Order::USER_ID, $user->getId())
-            ->orderBy(Order::CREATED_AT, 'desc')
-            ->paginate($perPage);
-
-        return [
-            'orders' => $orders->items(),
-            'total' => $orders->total(),
-            'current_page' => $orders->currentPage(),
-            'per_page' => $orders->perPage(),
-            'last_page' => $orders->lastPage(),
-        ];
-    }
-
-    public function getGuestOrders(string $token, int $perPage = 10): array
-    {
-        $orders = Order::with(['items'])
-            ->where(Order::GUEST_TOKEN, $token)
             ->orderBy(Order::CREATED_AT, 'desc')
             ->paginate($perPage);
 

@@ -16,7 +16,6 @@ class CartResource extends JsonResource
         return [
             'id' => $this->resource->getId(),
             'user_id' => $this->resource->getUserId(),
-            'session_id' => $this->resource->getSessionId(),
             'items' => CartItemResource::collection($this->resource->items),
             'total_price' => $this->resource->getTotalPrice(),
             'total_items' => $this->resource->getTotalItems(),

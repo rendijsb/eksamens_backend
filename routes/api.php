@@ -119,14 +119,12 @@ Route::prefix('profile')->group(function () {
     });
 });
 
-Route::prefix('cart')->group(function () {
+Route::middleware('auth:sanctum')->prefix('cart')->group(function () {
     Route::get('/', [App\Http\Controllers\Carts\CartController::class, 'getCart']);
     Route::post('/add', [App\Http\Controllers\Carts\CartController::class, 'addToCart']);
     Route::patch('/update/{item_id}', [App\Http\Controllers\Carts\CartController::class, 'updateCartItem']);
     Route::delete('/remove/{item_id}', [App\Http\Controllers\Carts\CartController::class, 'removeFromCart']);
     Route::delete('/clear', [App\Http\Controllers\Carts\CartController::class, 'clearCart']);
-
-    Route::post('/migrate', [App\Http\Controllers\Carts\CartController::class, 'migrateCart'])->middleware('auth:sanctum');
 });
 
 Route::prefix('checkout')->group(function () {
@@ -135,15 +133,16 @@ Route::prefix('checkout')->group(function () {
     Route::post('/webhook/stripe', [CheckoutController::class, 'handleStripeWebhook']);
 });
 
-Route::prefix('orders')->group(function () {
-    Route::get('/guest', [OrderController::class, 'getGuestOrders']);
-    Route::get('/guest/{orderNumber}', [OrderController::class, 'getOrderByNumber']);
-    Route::post('/guest/{orderId}/cancel', [OrderController::class, 'cancelOrder']);
+Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
+    Route::get('/', [OrderController::class, 'getUserOrders']);
+    Route::get('/{orderId}', [OrderController::class, 'getOrderById']);
+    Route::get('/number/{orderNumber}', [OrderController::class, 'getOrderByNumber']);
+    Route::post('/{orderId}/cancel', [OrderController::class, 'cancelOrder']);
 
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/', [OrderController::class, 'getUserOrders']);
-        Route::get('/{orderId}', [OrderController::class, 'getOrderById']);
-        Route::get('/number/{orderNumber}', [OrderController::class, 'getOrderByNumber']);
-        Route::post('/{orderId}/cancel', [OrderController::class, 'cancelOrder']);
+    Route::middleware('auth:sanctum')->prefix('checkout')->group(function () {
+        Route::post('/initiate', [CheckoutController::class, 'initiateCheckout']);
+        Route::post('/payment', [CheckoutController::class, 'processPayment']);
     });
 });
+
+Route::post('/checkout/webhook/stripe', [CheckoutController::class, 'handleStripeWebhook']);
