@@ -16,15 +16,18 @@ use App\Models\Users\Address;
 use App\Models\Users\User;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class OrderService
 {
     private CartService $cartService;
+    private StripeService $stripeService;
 
-    public function __construct(CartService $cartService)
+    public function __construct(CartService $cartService, StripeService $stripeService)
     {
         $this->cartService = $cartService;
+        $this->stripeService = $stripeService;
     }
 
     public function createOrderFromCart(Cart $cart, array $orderData): Order
@@ -160,17 +163,63 @@ class OrderService
         ];
     }
 
+    /**
+     * @throws Exception
+     */
     public function cancelOrder(Order $order): Order
     {
-        if ($order->getStatus() === OrderStatusEnum::STATUS_PENDING->value ||
-            $order->getStatus() === OrderStatusEnum::STATUS_PROCESSING->value) {
+        try {
+            $statusValue = $order->getStatus()->value;
 
-            $order->update([
-                Order::STATUS => OrderStatusEnum::STATUS_CANCELLED->value
-            ]);
+            if ($statusValue !== OrderStatusEnum::STATUS_PENDING->value &&
+                $statusValue !== OrderStatusEnum::STATUS_PROCESSING->value) {
+                return $order->fresh(['items']);
+            }
+
+            $alreadyRefunded = PaymentTransaction::where('order_id', $order->getId())
+                ->where('status', PaymentStatusEnum::REFUNDED->value)
+                ->exists();
+
+            if (!$alreadyRefunded &&
+                $order->getPaymentStatus()->value === PaymentStatusEnum::PAID->value &&
+                $order->getTransactionId() !== null) {
+
+                try {
+                    $refundResponse = $this->stripeService->createRefund($order->getTransactionId());
+
+                    $order->update([
+                        Order::STATUS => OrderStatusEnum::STATUS_CANCELLED->value,
+                        Order::PAYMENT_STATUS => PaymentStatusEnum::REFUNDED->value
+                    ]);
+
+                    PaymentTransaction::create([
+                        PaymentTransaction::ORDER_ID => $order->getId(),
+                        PaymentTransaction::TRANSACTION_ID => $refundResponse['id'],
+                        PaymentTransaction::AMOUNT => $order->getTotalAmount(),
+                        PaymentTransaction::PAYMENT_METHOD => $order->getPaymentMethod(),
+                        PaymentTransaction::STATUS => PaymentStatusEnum::REFUNDED->value,
+                        PaymentTransaction::PAYMENT_DETAILS => ['refund_for' => $order->getTransactionId()]
+                    ]);
+
+                    $this->restoreProductInventory($order);
+
+                } catch (\Exception $e) {
+                    Log::error('Refund failed: ' . $e->getMessage());
+                    $order->update([
+                        Order::STATUS => OrderStatusEnum::STATUS_CANCELLED->value
+                    ]);
+                }
+            } else {
+                $order->update([
+                    Order::STATUS => OrderStatusEnum::STATUS_CANCELLED->value
+                ]);
+            }
+
+            return $order->fresh(['items']);
+        } catch (\Exception $e) {
+            Log::error('Error canceling order: ' . $e->getMessage());
+            throw $e;
         }
-
-        return $order;
     }
 
     private function generateOrderNumber(): string
@@ -209,6 +258,19 @@ class OrderService
                 $product->update([
                     'stock' => $newStock,
                     'sold' => $product->getSold() + $item->getQuantity()
+                ]);
+            }
+        }
+    }
+
+    private function restoreProductInventory(Order $order): void
+    {
+        foreach ($order->items as $item) {
+            $product = $item->product;
+            if ($product) {
+                $product->update([
+                    'stock' => $product->getStock() + $item->getQuantity(),
+                    'sold' => max(0, $product->getSold() - $item->getQuantity())
                 ]);
             }
         }

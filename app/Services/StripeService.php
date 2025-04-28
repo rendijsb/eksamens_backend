@@ -106,4 +106,31 @@ class StripeService
             ];
         }
     }
+
+    /**
+     * @throws ApiErrorException
+     */
+    public function createRefund(string $paymentIntentId): array
+    {
+        try {
+            $paymentIntent = $this->stripeClient->paymentIntents->retrieve($paymentIntentId);
+
+            if ($paymentIntent->status !== 'succeeded' || $paymentIntent->amount_received <= 0) {
+                throw new Exception("Payment cannot be refunded: status={$paymentIntent->status}, amount={$paymentIntent->amount_received}");
+            }
+
+            $refund = $this->stripeClient->refunds->create([
+                'payment_intent' => $paymentIntentId,
+                'amount' => $paymentIntent->amount_received
+            ]);
+
+            return [
+                'id' => $refund->id,
+                'status' => $refund->status
+            ];
+        } catch (\Exception $e) {
+            Log::error('Stripe refund creation failed: ' . $e->getMessage());
+            throw $e;
+        }
+    }
 }

@@ -117,7 +117,7 @@ class OrderController extends Controller
                 ], 404);
             }
 
-            if ($order->getUserId() !== $user->getId() && !$user->relatedRole?->getName() == 'admin') {
+            if ($order->getUserId() !== $user->getId() && $user->relatedRole?->getName() != 'admin') {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthorized to cancel this order'
