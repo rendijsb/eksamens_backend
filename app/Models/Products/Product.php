@@ -7,6 +7,7 @@ namespace App\Models\Products;
 use App\Enums\Images\ImageTypeEnum;
 use App\Models\Categories\Category;
 use App\Models\Images\Image;
+use App\Models\Reviews\Review;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -168,5 +169,25 @@ class Product extends Model
     public function getEffectivePrice(): string|int
     {
         return $this->isSaleActive() ? $this->getSalePrice() : $this->getPrice();
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function approvedReviews(): HasMany
+    {
+        return $this->hasMany(Review::class)->where(Review::IS_APPROVED, true);
+    }
+
+    public function getAverageRating(): string|int|null
+    {
+        return $this->approvedReviews()->avg(Review::RATING);
+    }
+
+    public function getReviewsCount(): int
+    {
+        return $this->approvedReviews()->count();
     }
 }

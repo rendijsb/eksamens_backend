@@ -32,6 +32,8 @@ class ProductResource extends JsonResource
                 : null,
             'is_sale_active' => $this->resource->isSaleActive(),
             'sale_ends_at' => $this->resource->getSaleEndsAt(),
+            'average_rating' => $this->resource->getAverageRating(),
+            'reviews_count' => $this->resource->getReviewsCount(),
             'category_id' => $this->resource->getCategoryId(),
             'created_at' => $this->resource->getCreatedAt(),
         ];

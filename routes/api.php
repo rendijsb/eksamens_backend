@@ -8,6 +8,7 @@ use App\Http\Controllers\Checkout\CheckoutController;
 use App\Http\Controllers\Images\ImageController;
 use App\Http\Controllers\Orders\OrderController;
 use App\Http\Controllers\Products\ProductController;
+use App\Http\Controllers\Reviews\ReviewController;
 use App\Http\Controllers\Users\AuthController;
 use App\Http\Controllers\Users\UserController;
 use App\Http\Middleware\CheckRoleMiddleware;
@@ -87,11 +88,11 @@ Route::prefix('public')->group(function () {
         Route::prefix('{slug}')->group(function () {
             Route::get('', [ProductController::class, 'getProductBySlug']);
         });
+    });
 
-        Route::prefix('images')->group(function () {
-            Route::prefix('{relatedId}')->group(function () {
-                Route::get('', [ImageController::class, 'getImages']);
-            });
+    Route::prefix('images')->group(function () {
+        Route::prefix('{relatedId}')->group(function () {
+            Route::get('', [ImageController::class, 'getImages']);
         });
     });
 
@@ -107,6 +108,7 @@ Route::prefix('profile')->group(function () {
         Route::post('change-password', [UserController::class, 'changePassword']);
         Route::post('update-image', [UserController::class, 'updateProfileImage']);
         Route::delete('remove-image', [UserController::class, 'removeProfileImage']);
+        Route::get('products/{productId}/reviews', [ReviewController::class, 'getProductReviews']);
     });
 
     Route::middleware('auth:sanctum')->prefix('addresses')->group(function () {
@@ -154,3 +156,16 @@ Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderato
         Route::get('/{orderId}', [App\Http\Controllers\Orders\OrderController::class, 'getOrderById']);
         Route::patch('/{orderId}/status', [App\Http\Controllers\Orders\OrderController::class, 'updateOrderStatus']);
     });
+
+Route::middleware('auth:sanctum')->prefix('reviews')->group(function () {
+    Route::get('/user', [ReviewController::class, 'getUserReviews']);
+    Route::post('/create', [ReviewController::class, 'createReview']);
+    Route::delete('/{reviewId}', [ReviewController::class, 'deleteReview']);
+});
+
+Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderator'])->prefix('admin/reviews')->group(function () {
+    Route::get('/', [ReviewController::class, 'getAllReviews']);
+    Route::get('/pending', [ReviewController::class, 'getPendingReviews']);
+    Route::patch('/{reviewId}/status', [ReviewController::class, 'updateReviewStatus']);
+    Route::delete('/{reviewId}', [ReviewController::class, 'deleteReview']);
+});
