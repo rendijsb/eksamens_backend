@@ -172,7 +172,8 @@ class OrderService
             $statusValue = $order->getStatus()->value;
 
             if ($statusValue !== OrderStatusEnum::STATUS_PENDING->value &&
-                $statusValue !== OrderStatusEnum::STATUS_PROCESSING->value) {
+                $statusValue !== OrderStatusEnum::STATUS_PROCESSING->value &&
+                $statusValue !== OrderStatusEnum::STATUS_FAILED->value) {
                 return $order->fresh(['items']);
             }
 

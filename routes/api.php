@@ -146,3 +146,11 @@ Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
     Route::get('/number/{orderNumber}', [OrderController::class, 'getOrderByNumber']);
     Route::post('/{orderId}/cancel', [OrderController::class, 'cancelOrder']);
 });
+
+Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderator'])
+    ->prefix('admin/orders')
+    ->group(function () {
+        Route::get('/', [App\Http\Controllers\Orders\OrderController::class, 'getAllOrders']);
+        Route::get('/{orderId}', [App\Http\Controllers\Orders\OrderController::class, 'getOrderById']);
+        Route::patch('/{orderId}/status', [App\Http\Controllers\Orders\OrderController::class, 'updateOrderStatus']);
+    });
