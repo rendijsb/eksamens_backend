@@ -84,6 +84,7 @@ Route::prefix('public')->group(function () {
         Route::get('getAllPopularActiveProducts', [ProductController::class, 'getAllPopularActiveProducts']);
         Route::get('getAllSearchableProducts', [ProductController::class, 'getAllSearchableProducts']);
         Route::get('getRelatedProducts', [ProductController::class, 'getRelatedProducts']);
+        Route::get('getSaleProducts', [ProductController::class, 'getSaleProducts']);
 
         Route::prefix('{slug}')->group(function () {
             Route::get('', [ProductController::class, 'getProductBySlug']);

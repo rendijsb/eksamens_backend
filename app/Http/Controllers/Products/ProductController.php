@@ -17,7 +17,9 @@ use App\Http\Requests\Products\GetRelatedProductsRequest;
 use App\Http\Resources\Products\ProductResource;
 use App\Http\Resources\Products\ProductResourceCollection;
 use App\Models\Products\Product;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -213,6 +215,37 @@ class ProductController extends Controller
             ->orderBy(Product::CREATED_AT, 'desc');
 
         $products = $query->limit($request->getLimit())->get();
+
+        return new ProductResourceCollection($products);
+    }
+
+    public function getSaleProducts(Request $request): ProductResourceCollection
+    {
+        $query = Product::query();
+
+        $query->where(Product::STATUS, ProductEnum::ACTIVE->value);
+
+        $query->whereNotNull(Product::SALE_PRICE)
+            ->where(function($q) {
+                $q->whereNull(Product::SALE_ENDS_AT)
+                    ->orWhere(Product::SALE_ENDS_AT, '>', Carbon::now());
+            });
+
+        if ($request->has('per_page')) {
+            $perPage = (int) $request->get('per_page');
+        } else {
+            $perPage = 12;
+        }
+
+        if ($request->has('sort_by')) {
+            $sortField = $request->get('sort_by');
+            $sortDirection = $request->get('sort_dir', 'desc');
+            $query->orderBy($sortField, $sortDirection);
+        } else {
+            $query->orderByRaw('(price - sale_price) / price DESC');
+        }
+
+        $products = $query->paginate($perPage);
 
         return new ProductResourceCollection($products);
     }
