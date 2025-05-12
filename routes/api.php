@@ -85,6 +85,7 @@ Route::prefix('public')->group(function () {
         Route::get('getAllSearchableProducts', [ProductController::class, 'getAllSearchableProducts']);
         Route::get('getRelatedProducts', [ProductController::class, 'getRelatedProducts']);
         Route::get('getSaleProducts', [ProductController::class, 'getSaleProducts']);
+        Route::get('suggestions', [ProductController::class, 'getProductSuggestions']);
 
         Route::prefix('{slug}')->group(function () {
             Route::get('', [ProductController::class, 'getProductBySlug']);
@@ -99,6 +100,12 @@ Route::prefix('public')->group(function () {
 
     Route::prefix('banners')->group(function () {
         Route::get('getAllActiveBanners', [BannerController::class, 'getAllActiveBanners']);
+    });
+
+    Route::prefix('pages')->group(function () {
+        Route::get('about', [App\Http\Controllers\Pages\AboutPageController::class, 'getAboutPage']);
+        Route::get('contact', [App\Http\Controllers\Pages\ContactController::class, 'getContactInfo']);
+        Route::post('contact/send', [App\Http\Controllers\Pages\ContactController::class, 'sendContactForm']);
     });
 });
 
@@ -170,3 +177,28 @@ Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderato
     Route::patch('/{reviewId}/status', [ReviewController::class, 'updateReviewStatus']);
     Route::delete('/{reviewId}', [ReviewController::class, 'deleteReview']);
 });
+
+Route::middleware('auth:sanctum')->prefix('wishlist')->group(function () {
+    Route::get('/', [App\Http\Controllers\Wishlists\WishlistController::class, 'getWishlist']);
+    Route::post('/add', [App\Http\Controllers\Wishlists\WishlistController::class, 'addToWishlist']);
+    Route::delete('/remove/{productId}', [App\Http\Controllers\Wishlists\WishlistController::class, 'removeFromWishlist']);
+    Route::get('/check/{productId}', [App\Http\Controllers\Wishlists\WishlistController::class, 'checkInWishlist']);
+    Route::delete('/clear', [App\Http\Controllers\Wishlists\WishlistController::class, 'clearWishlist']);
+});
+
+Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderator'])
+    ->prefix('admin/pages')
+    ->group(function () {
+        Route::prefix('about')->group(function () {
+            Route::get('', [App\Http\Controllers\Pages\AboutPageController::class, 'getAllAboutPages']);
+            Route::post('create', [App\Http\Controllers\Pages\AboutPageController::class, 'createAboutPage']);
+            Route::put('{id}', [App\Http\Controllers\Pages\AboutPageController::class, 'updateAboutPage']);
+            Route::delete('{id}', [App\Http\Controllers\Pages\AboutPageController::class, 'deleteAboutPage']);
+            Route::get('{id}', [App\Http\Controllers\Pages\AboutPageController::class, 'getAboutPageById']);
+        });
+
+        Route::prefix('contact')->group(function () {
+            Route::get('', [App\Http\Controllers\Pages\ContactController::class, 'getContactInfo']);
+            Route::put('update', [App\Http\Controllers\Pages\ContactController::class, 'updateContactInfo']);
+        });
+    });

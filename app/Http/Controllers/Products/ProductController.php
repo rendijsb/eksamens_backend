@@ -249,4 +249,24 @@ class ProductController extends Controller
 
         return new ProductResourceCollection($products);
     }
+
+    public function getProductSuggestions(Request $request): ProductResourceCollection
+    {
+        $query = Product::query();
+        $query->where(Product::STATUS, ProductEnum::ACTIVE->value);
+
+        if ($request->has('search')) {
+            $searchTerm = $request->get('search');
+            $query->where(function($q) use ($searchTerm) {
+                $q->where(Product::NAME, 'like', "%{$searchTerm}%")
+                    ->orWhere(Product::DESCRIPTION, 'like', "%{$searchTerm}%")
+                    ->orWhere(Product::SLUG, 'like', "%{$searchTerm}%");
+            });
+        }
+
+        $perPage = $request->get('per_page', 5);
+        $products = $query->limit($perPage)->get();
+
+        return new ProductResourceCollection($products);
+    }
 }
