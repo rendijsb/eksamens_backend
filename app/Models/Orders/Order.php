@@ -6,13 +6,15 @@ namespace App\Models\Orders;
 
 use App\Enums\Orders\OrderStatusEnum;
 use App\Enums\Payments\PaymentStatusEnum;
-use App\Enums\Payments\TransactionStatusEnum;
+use App\Models\Coupons\Coupon;
+use App\Models\Coupons\CouponUsage;
 use App\Models\Users\Address;
 use App\Models\Users\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Order extends Model
 {
@@ -24,6 +26,10 @@ class Order extends Model
     const PAYMENT_METHOD = 'payment_method';
     const PAYMENT_STATUS = 'payment_status';
     const TRANSACTION_ID = 'transaction_id';
+    const COUPON_ID = 'coupon_id';
+    const COUPON_CODE = 'coupon_code';
+    const COUPON_DISCOUNT = 'coupon_discount';
+    const SUBTOTAL = 'subtotal';
     const SHIPPING_ADDRESS_ID = 'shipping_address_id';
     const BILLING_ADDRESS_ID = 'billing_address_id';
     const CUSTOMER_NAME = 'customer_name';
@@ -43,6 +49,10 @@ class Order extends Model
         self::PAYMENT_METHOD,
         self::PAYMENT_STATUS,
         self::TRANSACTION_ID,
+        self::COUPON_ID,
+        self::COUPON_CODE,
+        self::COUPON_DISCOUNT,
+        self::SUBTOTAL,
         self::SHIPPING_ADDRESS_ID,
         self::BILLING_ADDRESS_ID,
         self::CUSTOMER_NAME,
@@ -56,6 +66,8 @@ class Order extends Model
     protected $casts = [
         self::STATUS => OrderStatusEnum::class,
         self::PAYMENT_STATUS => PaymentStatusEnum::class,
+        self::COUPON_DISCOUNT => 'decimal:2',
+        self::SUBTOTAL => 'decimal:2',
     ];
 
     public function user(): BelongsTo
@@ -81,6 +93,16 @@ class Order extends Model
     public function billingAddress(): BelongsTo
     {
         return $this->belongsTo(Address::class, self::BILLING_ADDRESS_ID);
+    }
+
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
+    }
+
+    public function couponUsage(): HasOne
+    {
+        return $this->hasOne(CouponUsage::class);
     }
 
     public function getId(): int
@@ -121,6 +143,26 @@ class Order extends Model
     public function getTransactionId(): ?string
     {
         return $this->getAttribute(self::TRANSACTION_ID);
+    }
+
+    public function getCouponId(): ?int
+    {
+        return $this->getAttribute(self::COUPON_ID);
+    }
+
+    public function getCouponCode(): ?string
+    {
+        return $this->getAttribute(self::COUPON_CODE);
+    }
+
+    public function getCouponDiscount(): float
+    {
+        return (float) $this->getAttribute(self::COUPON_DISCOUNT);
+    }
+
+    public function getSubtotal(): float
+    {
+        return (float) $this->getAttribute(self::SUBTOTAL);
     }
 
     public function getShippingAddressId(): ?int
@@ -173,48 +215,66 @@ class Order extends Model
         return $this->getAttribute(self::UPDATED_AT);
     }
 
+    // Helper methods
     public function isPending(): bool
     {
-        return $this->getStatus() === OrderStatusEnum::STATUS_PENDING->value;
+        return $this->getStatus() === OrderStatusEnum::STATUS_PENDING;
     }
 
     public function isProcessing(): bool
     {
-        return $this->getStatus() === OrderStatusEnum::STATUS_PROCESSING->value;
+        return $this->getStatus() === OrderStatusEnum::STATUS_PROCESSING;
     }
 
     public function isCompleted(): bool
     {
-        return $this->getStatus() === OrderStatusEnum::STATUS_COMPLETED->value;
+        return $this->getStatus() === OrderStatusEnum::STATUS_COMPLETED;
     }
 
     public function isCancelled(): bool
     {
-        return $this->getStatus() === OrderStatusEnum::STATUS_CANCELLED->value;
+        return $this->getStatus() === OrderStatusEnum::STATUS_CANCELLED;
     }
 
     public function isFailed(): bool
     {
-        return $this->getStatus() === OrderStatusEnum::STATUS_FAILED->value;
+        return $this->getStatus() === OrderStatusEnum::STATUS_FAILED;
     }
 
     public function isPaymentCompleted(): bool
     {
-        return $this->getPaymentStatus() === TransactionStatusEnum::COMPLETED->value;
+        return $this->getPaymentStatus() === PaymentStatusEnum::PAID;
     }
 
     public function isPaymentPending(): bool
     {
-        return $this->getPaymentStatus() === TransactionStatusEnum::PENDING->value;
+        return $this->getPaymentStatus() === PaymentStatusEnum::PENDING;
     }
 
     public function isPaymentFailed(): bool
     {
-        return $this->getPaymentStatus() === TransactionStatusEnum::FAILED->value;
+        return $this->getPaymentStatus() === PaymentStatusEnum::FAILED;
     }
 
     public function isRefunded(): bool
     {
-        return $this->getPaymentStatus() === TransactionStatusEnum::REFUNDED->value;
+        return $this->getPaymentStatus() === PaymentStatusEnum::REFUNDED;
+    }
+
+    public function hasCoupon(): bool
+    {
+        return $this->getCouponId() !== null;
+    }
+
+    public function calculateItemsTotal(): float
+    {
+        return $this->items->sum('total_price');
+    }
+
+    public function calculateTotalWithCoupon(): float
+    {
+        $subtotal = $this->getSubtotal();
+        $discount = $this->getCouponDiscount();
+        return max(0, $subtotal - $discount);
     }
 }

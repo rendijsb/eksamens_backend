@@ -22,10 +22,27 @@ class OrderResource extends JsonResource
             ? json_decode($this->resource->getBillingAddressDetails(), true)
             : null;
 
+        $subtotal = $this->resource->getSubtotal();
+        $couponDiscount = $this->resource->getCouponDiscount();
+        $totalAmount = $this->resource->getTotalAmount();
+
+        if (!$subtotal) {
+            $subtotal = $totalAmount;
+        }
+
+        if ($this->resource->hasCoupon() && !$couponDiscount && $this->resource->coupon) {
+            $couponDiscount = $this->resource->coupon->calculateDiscount($subtotal);
+        }
+
+        $finalAmount = max(0, $subtotal - $couponDiscount);
+
         return [
             'id' => $this->resource->getId(),
             'order_number' => $this->resource->getOrderNumber(),
-            'total_amount' => $this->resource->getTotalAmount(),
+            'subtotal' => $subtotal,
+            'coupon_discount' => $couponDiscount,
+            'total_amount' => $finalAmount,
+            'original_amount' => $subtotal,
             'status' => $this->resource->getStatus(),
             'payment_method' => $this->resource->getPaymentMethod(),
             'payment_status' => $this->resource->getPaymentStatus(),
@@ -36,6 +53,13 @@ class OrderResource extends JsonResource
             'shipping_address' => $shippingAddressDetails,
             'billing_address' => $billingAddressDetails,
             'notes' => $this->resource->getNotes(),
+            'coupon' => $this->when($this->resource->hasCoupon(), function () {
+                return [
+                    'id' => $this->resource->getCouponId(),
+                    'code' => $this->resource->getCouponCode(),
+                    'discount_amount' => $this->resource->getCouponDiscount(),
+                ];
+            }),
             'items' => OrderItemResource::collection($this->whenLoaded('items')),
             'transactions' => PaymentTransactionResource::collection($this->whenLoaded('transactions')),
             'created_at' => $this->resource->getCreatedAt()->format('Y-m-d H:i:s'),

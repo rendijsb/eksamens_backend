@@ -23,11 +23,16 @@ class OrderService
 {
     private CartService $cartService;
     private StripeService $stripeService;
+    private CouponService $couponService;
 
-    public function __construct(CartService $cartService, StripeService $stripeService)
-    {
+    public function __construct(
+        CartService $cartService,
+        StripeService $stripeService,
+        CouponService $couponService
+    ) {
         $this->cartService = $cartService;
         $this->stripeService = $stripeService;
+        $this->couponService = $couponService;
     }
 
     public function createOrderFromCart(Cart $cart, array $orderData): Order
@@ -54,6 +59,28 @@ class OrderService
             }
 
             $orderNumber = $this->generateOrderNumber();
+            $subtotal = $cart->getTotalPrice();
+            $couponDiscount = 0;
+            $couponId = null;
+            $couponCode = null;
+
+            if (!empty($orderData['coupon_code'])) {
+                $couponValidation = $this->couponService->validateCoupon(
+                    $orderData['coupon_code'],
+                    $subtotal,
+                    $cart->getUserId()
+                );
+
+                if ($couponValidation['valid']) {
+                    $couponDiscount = $couponValidation['discount'];
+                    $couponId = $couponValidation['coupon']->getId();
+                    $couponCode = $couponValidation['coupon']->getCode();
+                } else {
+                    throw new Exception($couponValidation['message']);
+                }
+            }
+
+            $totalAmount = max(0, $subtotal - $couponDiscount);
 
             $shippingAddressDetails = $this->formatAddressDetails($orderData['shipping_address']);
             $billingAddressDetails = $orderData['same_billing_address']
@@ -63,7 +90,8 @@ class OrderService
             $order = Order::create([
                 Order::USER_ID => $cart->getUserId(),
                 Order::ORDER_NUMBER => $orderNumber,
-                Order::TOTAL_AMOUNT => $cart->getTotalPrice(),
+                Order::TOTAL_AMOUNT => $totalAmount,
+                Order::SUBTOTAL => $subtotal,
                 Order::STATUS => OrderStatusEnum::STATUS_PENDING->value,
                 Order::PAYMENT_METHOD => $orderData['payment_method'],
                 Order::PAYMENT_STATUS => PaymentStatusEnum::PENDING->value,
@@ -75,6 +103,9 @@ class OrderService
                 Order::SHIPPING_ADDRESS_DETAILS => $shippingAddressDetails,
                 Order::BILLING_ADDRESS_DETAILS => $billingAddressDetails,
                 Order::NOTES => $orderData['notes'] ?? null,
+                Order::COUPON_ID => $couponId,
+                Order::COUPON_CODE => $couponCode,
+                Order::COUPON_DISCOUNT => $couponDiscount,
             ]);
 
             foreach ($cart->items as $cartItem) {
@@ -87,6 +118,10 @@ class OrderService
                     OrderItem::QUANTITY => $cartItem->getQuantity(),
                     OrderItem::TOTAL_PRICE => $cartItem->getTotalPrice(),
                 ]);
+            }
+
+            if ($couponId) {
+                $this->couponService->applyCouponToOrder($order, (string)$couponCode, $cart->getUserId());
             }
 
             return $order;
@@ -137,19 +172,19 @@ class OrderService
 
     public function getOrderById(int $orderId): ?Order
     {
-        return Order::with(['items', 'transactions', 'shippingAddress', 'billingAddress'])->find($orderId);
+        return Order::with(['items', 'transactions', 'shippingAddress', 'billingAddress', 'coupon'])->find($orderId);
     }
 
     public function getOrderByNumber(string $orderNumber): ?Order
     {
-        return Order::with(['items', 'transactions'])
+        return Order::with(['items', 'transactions', 'coupon'])
             ->where(Order::ORDER_NUMBER, $orderNumber)
             ->first();
     }
 
     public function getUserOrders(User $user, int $perPage = 10): array
     {
-        $orders = Order::with(['items'])
+        $orders = Order::with(['items', 'coupon'])
             ->where(Order::USER_ID, $user->getId())
             ->orderBy(Order::CREATED_AT, 'desc')
             ->paginate($perPage);
@@ -174,7 +209,7 @@ class OrderService
             if ($statusValue !== OrderStatusEnum::STATUS_PENDING->value &&
                 $statusValue !== OrderStatusEnum::STATUS_PROCESSING->value &&
                 $statusValue !== OrderStatusEnum::STATUS_FAILED->value) {
-                return $order->fresh(['items']);
+                return $order->fresh(['items', 'coupon']);
             }
 
             $alreadyRefunded = PaymentTransaction::where('order_id', $order->getId())
@@ -204,6 +239,10 @@ class OrderService
 
                     $this->restoreProductInventory($order);
 
+                    if ($order->hasCoupon()) {
+                        $this->couponService->removeCouponFromOrder($order);
+                    }
+
                 } catch (\Exception $e) {
                     Log::error('Refund failed: ' . $e->getMessage());
                     $order->update([
@@ -214,9 +253,13 @@ class OrderService
                 $order->update([
                     Order::STATUS => OrderStatusEnum::STATUS_CANCELLED->value
                 ]);
+
+                if ($order->hasCoupon()) {
+                    $this->couponService->removeCouponFromOrder($order);
+                }
             }
 
-            return $order->fresh(['items']);
+            return $order->fresh(['items', 'coupon']);
         } catch (\Exception $e) {
             Log::error('Error canceling order: ' . $e->getMessage());
             throw $e;

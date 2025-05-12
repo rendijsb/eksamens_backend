@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Banners\BannerController;
 use App\Http\Controllers\Categories\CategoryController;
 use App\Http\Controllers\Checkout\CheckoutController;
+use App\Http\Controllers\Coupons\CouponController;
 use App\Http\Controllers\Images\ImageController;
 use App\Http\Controllers\Orders\OrderController;
 use App\Http\Controllers\Products\ProductController;
@@ -200,5 +201,29 @@ Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderato
         Route::prefix('contact')->group(function () {
             Route::get('', [App\Http\Controllers\Pages\ContactController::class, 'getContactInfo']);
             Route::put('update', [App\Http\Controllers\Pages\ContactController::class, 'updateContactInfo']);
+        });
+    });
+
+Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderator'])
+    ->prefix('admin/analytics')
+    ->group(function () {
+        Route::get('/dashboard', [App\Http\Controllers\Analytics\AnalyticsController::class, 'getDashboardData']);
+    });
+
+Route::middleware('auth:sanctum')->prefix('coupons')->group(function () {
+    Route::post('validate', [CouponController::class, 'validateCoupon']);
+    Route::get('active', [CouponController::class, 'getActiveCoupons']);
+});
+
+Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderator'])
+    ->prefix('admin/coupons')
+    ->group(function () {
+        Route::get('/', [CouponController::class, 'getAllCoupons']);
+        Route::post('create', [CouponController::class, 'createCoupon']);
+        Route::get('{couponId}', [CouponController::class, 'getCouponById']);
+        Route::put('{couponId}', [CouponController::class, 'updateCoupon']);
+        Route::delete('{couponId}', [CouponController::class, 'deleteCoupon']);
+        Route::get('{couponId}/usage-stats', function (int $couponId, App\Services\CouponService $couponService) {
+            return response()->json($couponService->getCouponUsageStats($couponId));
         });
     });

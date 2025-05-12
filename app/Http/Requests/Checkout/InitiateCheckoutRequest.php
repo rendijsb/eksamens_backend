@@ -37,6 +37,7 @@ class InitiateCheckoutRequest extends FormRequest
             'billing_address.country' => 'required_with:billing_address|string|max:100',
             'payment_method' => 'required|string|in:stripe',
             'notes' => 'nullable|string|max:1000',
+            'coupon_code' => 'nullable|string|max:50',
         ];
     }
 
@@ -59,5 +60,10 @@ class InitiateCheckoutRequest extends FormRequest
         }
 
         return $validated;
+    }
+
+    public function getCouponCode(): ?string
+    {
+        return $this->input('coupon_code') ? strtoupper($this->input('coupon_code')) : null;
     }
 }
