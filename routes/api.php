@@ -2,16 +2,22 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Addresses\AddressController;
+use App\Http\Controllers\Analytics\AnalyticsController;
 use App\Http\Controllers\Banners\BannerController;
+use App\Http\Controllers\Carts\CartController;
 use App\Http\Controllers\Categories\CategoryController;
 use App\Http\Controllers\Checkout\CheckoutController;
 use App\Http\Controllers\Coupons\CouponController;
 use App\Http\Controllers\Images\ImageController;
 use App\Http\Controllers\Orders\OrderController;
+use App\Http\Controllers\Pages\AboutPageController;
+use App\Http\Controllers\Pages\ContactController;
 use App\Http\Controllers\Products\ProductController;
 use App\Http\Controllers\Reviews\ReviewController;
 use App\Http\Controllers\Users\AuthController;
 use App\Http\Controllers\Users\UserController;
+use App\Http\Controllers\Wishlists\WishlistController;
 use App\Http\Middleware\CheckRoleMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -104,9 +110,9 @@ Route::prefix('public')->group(function () {
     });
 
     Route::prefix('pages')->group(function () {
-        Route::get('about', [App\Http\Controllers\Pages\AboutPageController::class, 'getAboutPage']);
-        Route::get('contact', [App\Http\Controllers\Pages\ContactController::class, 'getContactInfo']);
-        Route::post('contact/send', [App\Http\Controllers\Pages\ContactController::class, 'sendContactForm']);
+        Route::get('about', [AboutPageController::class, 'getAboutPage']);
+        Route::get('contact', [ContactController::class, 'getContactInfo']);
+        Route::post('contact/send', [ContactController::class, 'sendContactForm']);
     });
 });
 
@@ -121,21 +127,21 @@ Route::prefix('profile')->group(function () {
     });
 
     Route::middleware('auth:sanctum')->prefix('addresses')->group(function () {
-        Route::get('', [App\Http\Controllers\Addresses\AddressController::class, 'getUserAddresses']);
-        Route::post('create', [App\Http\Controllers\Addresses\AddressController::class, 'createAddress']);
-        Route::get('{addressId}', [App\Http\Controllers\Addresses\AddressController::class, 'getAddressById']);
-        Route::put('{addressId}', [App\Http\Controllers\Addresses\AddressController::class, 'updateAddress']);
-        Route::delete('{addressId}', [App\Http\Controllers\Addresses\AddressController::class, 'deleteAddress']);
-        Route::patch('{addressId}/set-default', [App\Http\Controllers\Addresses\AddressController::class, 'setDefaultAddress']);
+        Route::get('', [AddressController::class, 'getUserAddresses']);
+        Route::post('create', [AddressController::class, 'createAddress']);
+        Route::get('{addressId}', [AddressController::class, 'getAddressById']);
+        Route::put('{addressId}', [AddressController::class, 'updateAddress']);
+        Route::delete('{addressId}', [AddressController::class, 'deleteAddress']);
+        Route::patch('{addressId}/set-default', [AddressController::class, 'setDefaultAddress']);
     });
 });
 
 Route::middleware('auth:sanctum')->prefix('cart')->group(function () {
-    Route::get('/', [App\Http\Controllers\Carts\CartController::class, 'getCart']);
-    Route::post('/add', [App\Http\Controllers\Carts\CartController::class, 'addToCart']);
-    Route::patch('/update/{item_id}', [App\Http\Controllers\Carts\CartController::class, 'updateCartItem']);
-    Route::delete('/remove/{item_id}', [App\Http\Controllers\Carts\CartController::class, 'removeFromCart']);
-    Route::delete('/clear', [App\Http\Controllers\Carts\CartController::class, 'clearCart']);
+    Route::get('/', [CartController::class, 'getCart']);
+    Route::post('/add', [CartController::class, 'addToCart']);
+    Route::patch('/update/{item_id}', [CartController::class, 'updateCartItem']);
+    Route::delete('/remove/{item_id}', [CartController::class, 'removeFromCart']);
+    Route::delete('/clear', [CartController::class, 'clearCart']);
 });
 
 Route::prefix('checkout')->group(function () {
@@ -161,9 +167,9 @@ Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
 Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderator'])
     ->prefix('admin/orders')
     ->group(function () {
-        Route::get('/', [App\Http\Controllers\Orders\OrderController::class, 'getAllOrders']);
-        Route::get('/{orderId}', [App\Http\Controllers\Orders\OrderController::class, 'getOrderById']);
-        Route::patch('/{orderId}/status', [App\Http\Controllers\Orders\OrderController::class, 'updateOrderStatus']);
+        Route::get('/', [OrderController::class, 'getAllOrders']);
+        Route::get('/{orderId}', [OrderController::class, 'getOrderById']);
+        Route::patch('/{orderId}/status', [OrderController::class, 'updateOrderStatus']);
     });
 
 Route::middleware('auth:sanctum')->prefix('reviews')->group(function () {
@@ -180,34 +186,34 @@ Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderato
 });
 
 Route::middleware('auth:sanctum')->prefix('wishlist')->group(function () {
-    Route::get('/', [App\Http\Controllers\Wishlists\WishlistController::class, 'getWishlist']);
-    Route::post('/add', [App\Http\Controllers\Wishlists\WishlistController::class, 'addToWishlist']);
-    Route::delete('/remove/{productId}', [App\Http\Controllers\Wishlists\WishlistController::class, 'removeFromWishlist']);
-    Route::get('/check/{productId}', [App\Http\Controllers\Wishlists\WishlistController::class, 'checkInWishlist']);
-    Route::delete('/clear', [App\Http\Controllers\Wishlists\WishlistController::class, 'clearWishlist']);
+    Route::get('/', [WishlistController::class, 'getWishlist']);
+    Route::post('/add', [WishlistController::class, 'addToWishlist']);
+    Route::delete('/remove/{productId}', [WishlistController::class, 'removeFromWishlist']);
+    Route::get('/check/{productId}', [WishlistController::class, 'checkInWishlist']);
+    Route::delete('/clear', [WishlistController::class, 'clearWishlist']);
 });
 
 Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderator'])
     ->prefix('admin/pages')
     ->group(function () {
         Route::prefix('about')->group(function () {
-            Route::get('', [App\Http\Controllers\Pages\AboutPageController::class, 'getAllAboutPages']);
-            Route::post('create', [App\Http\Controllers\Pages\AboutPageController::class, 'createAboutPage']);
-            Route::put('{id}', [App\Http\Controllers\Pages\AboutPageController::class, 'updateAboutPage']);
-            Route::delete('{id}', [App\Http\Controllers\Pages\AboutPageController::class, 'deleteAboutPage']);
-            Route::get('{id}', [App\Http\Controllers\Pages\AboutPageController::class, 'getAboutPageById']);
+            Route::get('', [AboutPageController::class, 'getAllAboutPages']);
+            Route::post('create', [AboutPageController::class, 'createAboutPage']);
+            Route::put('{id}', [AboutPageController::class, 'updateAboutPage']);
+            Route::delete('{id}', [AboutPageController::class, 'deleteAboutPage']);
+            Route::get('{id}', [AboutPageController::class, 'getAboutPageById']);
         });
 
         Route::prefix('contact')->group(function () {
-            Route::get('', [App\Http\Controllers\Pages\ContactController::class, 'getContactInfo']);
-            Route::put('update', [App\Http\Controllers\Pages\ContactController::class, 'updateContactInfo']);
+            Route::get('', [ContactController::class, 'getContactInfo']);
+            Route::put('update', [ContactController::class, 'updateContactInfo']);
         });
     });
 
 Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderator'])
     ->prefix('admin/analytics')
     ->group(function () {
-        Route::get('/dashboard', [App\Http\Controllers\Analytics\AnalyticsController::class, 'getDashboardData']);
+        Route::get('/dashboard', [AnalyticsController::class, 'getDashboardData']);
     });
 
 Route::middleware('auth:sanctum')->prefix('coupons')->group(function () {

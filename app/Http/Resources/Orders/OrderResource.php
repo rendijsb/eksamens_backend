@@ -23,26 +23,18 @@ class OrderResource extends JsonResource
             : null;
 
         $subtotal = $this->resource->getSubtotal();
+        if ($subtotal <= 0 && $this->resource->relationLoaded('items')) {
+            $subtotal = $this->resource->items->sum('total_price');
+        }
+
         $couponDiscount = $this->resource->getCouponDiscount();
-        $totalAmount = $this->resource->getTotalAmount();
-
-        if (!$subtotal) {
-            $subtotal = $totalAmount;
-        }
-
-        if ($this->resource->hasCoupon() && !$couponDiscount && $this->resource->coupon) {
-            $couponDiscount = $this->resource->coupon->calculateDiscount($subtotal);
-        }
-
-        $finalAmount = max(0, $subtotal - $couponDiscount);
 
         return [
             'id' => $this->resource->getId(),
             'order_number' => $this->resource->getOrderNumber(),
             'subtotal' => $subtotal,
             'coupon_discount' => $couponDiscount,
-            'total_amount' => $finalAmount,
-            'original_amount' => $subtotal,
+            'total_amount' => $this->resource->getTotalAmount(),
             'status' => $this->resource->getStatus(),
             'payment_method' => $this->resource->getPaymentMethod(),
             'payment_status' => $this->resource->getPaymentStatus(),
