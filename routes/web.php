@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Images\ImageTypeEnum;
+use App\Http\Controllers\Newsletter\NewsletterController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Response;
@@ -27,3 +28,10 @@ Route::get('/{type}/image/{filename}', function ($type, $filename) {
     }
 })->where('filename', '.*')
     ->where('type', ImageTypeEnum::getRegexPattern());
+
+Route::prefix('newsletter')->group(function () {
+    Route::get('unsubscribe/{token}', [NewsletterController::class, 'unsubscribeView'])
+        ->name('newsletter.unsubscribe.view');
+    Route::post('unsubscribe/{token}', [NewsletterController::class, 'confirmUnsubscribeWeb'])
+        ->name('newsletter.unsubscribe.web');
+});

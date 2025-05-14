@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Addresses\AddressController;
+use App\Http\Controllers\Admin\AdminNewsletterController;
 use App\Http\Controllers\Analytics\AnalyticsController;
 use App\Http\Controllers\Banners\BannerController;
 use App\Http\Controllers\Carts\CartController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\Categories\CategoryController;
 use App\Http\Controllers\Checkout\CheckoutController;
 use App\Http\Controllers\Coupons\CouponController;
 use App\Http\Controllers\Images\ImageController;
+use App\Http\Controllers\Newsletter\NewsletterController;
 use App\Http\Controllers\Orders\OrderController;
 use App\Http\Controllers\Pages\AboutPageController;
 use App\Http\Controllers\Pages\ContactController;
@@ -232,4 +234,17 @@ Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderato
         Route::get('{couponId}/usage-stats', function (int $couponId, App\Services\CouponService $couponService) {
             return response()->json($couponService->getCouponUsageStats($couponId));
         });
+    });
+
+Route::prefix('newsletter')->group(function () {
+    Route::post('subscribe', [NewsletterController::class, 'subscribe']);
+    Route::post('unsubscribe', [NewsletterController::class, 'unsubscribeAPI']);
+});
+
+Route::prefix('admin/newsletter')
+    ->middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderator'])
+    ->group(function () {
+        Route::get('stats', [AdminNewsletterController::class, 'getSubscriberStats']);
+        Route::get('subscribers', [AdminNewsletterController::class, 'getSubscribers']);
+        Route::post('send', [AdminNewsletterController::class, 'sendNewsletter']);
     });
