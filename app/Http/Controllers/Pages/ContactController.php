@@ -6,10 +6,13 @@ namespace App\Http\Controllers\Pages;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Pages\ContactResource;
+use App\Mail\ContactFormAutoReply;
+use App\Mail\ContactFormSubmission;
 use App\Models\Pages\Contact;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Mail;
 
 class ContactController extends Controller
 {
@@ -52,10 +55,16 @@ class ContactController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'subject' => 'required|string|max:255',
-            'message' => 'required|string',
+            'message' => 'required|string|max:2000',
         ]);
 
+        Mail::to(config('mail.from.address'))->send(new ContactFormSubmission($validated));
 
-        return response()->json(['message' => 'Your message has been sent successfully']);
+        Mail::to($validated['email'])->send(new ContactFormAutoReply($validated));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Jūsu ziņojums ir sekmīgi nosūtīts. Mēs ar jums sazināsimies drīzumā.'
+        ]);
     }
 }

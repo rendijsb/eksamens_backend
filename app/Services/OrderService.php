@@ -6,6 +6,9 @@ namespace App\Services;
 
 use App\Enums\Orders\OrderStatusEnum;
 use App\Enums\Payments\PaymentStatusEnum;
+use App\Mail\OrderConfirmation;
+use App\Mail\PaymentConfirmation;
+use App\Mail\ReviewRequest;
 use App\Models\Carts\Cart;
 use App\Models\Carts\CartItem;
 use App\Models\Orders\Order;
@@ -17,6 +20,7 @@ use App\Models\Users\User;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class OrderService
@@ -124,6 +128,8 @@ class OrderService
                 $this->couponService->applyCouponToOrder($order, (string)$couponCode, $cart->getUserId());
             }
 
+            Mail::to($order->getCustomerEmail())->send(new OrderConfirmation($order));
+
             return $order;
         });
     }
@@ -156,6 +162,9 @@ class OrderService
 
             if ($status === PaymentStatusEnum::PAID->value) {
                 $user = User::find($order->getUserId());
+
+                Mail::to($order->getCustomerEmail())->send(new PaymentConfirmation($order));
+
                 if ($user) {
                     $cart = Cart::where(Cart::USER_ID, $user->getId())->first();
                     if ($cart) {
@@ -318,5 +327,11 @@ class OrderService
                 ]);
             }
         }
+    }
+
+    public function sendReviewRequest(Order $order): void
+    {
+        Mail::to($order->getCustomerEmail())
+            ->later(now()->addDays(3), new ReviewRequest($order));
     }
 }

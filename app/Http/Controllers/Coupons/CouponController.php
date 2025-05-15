@@ -13,11 +13,14 @@ use App\Http\Requests\Coupons\DeleteCouponRequest;
 use App\Http\Requests\Coupons\ValidateCouponRequest;
 use App\Http\Resources\Coupons\CouponResource;
 use App\Http\Resources\Coupons\CouponResourceCollection;
+use App\Mail\CouponNotification;
 use App\Models\Coupons\Coupon;
+use App\Models\Users\User;
 use App\Services\CouponService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class CouponController extends Controller
 {
@@ -72,6 +75,10 @@ class CouponController extends Controller
                 Coupon::IS_ACTIVE => $request->getIsActive(),
                 Coupon::DESCRIPTION => $request->getDescription(),
             ]);
+
+            if ($request->getIsActive()) {
+                $this->sendCouponToAllUsers($coupon);
+            }
 
             return new CouponResource($coupon);
         } catch (\Exception $e) {
@@ -180,5 +187,16 @@ class CouponController extends Controller
             ->paginate(10);
 
         return new CouponResourceCollection($coupons);
+    }
+
+    public function sendCouponToAllUsers(Coupon $coupon): void
+    {
+        $users = User::where('role_id', '!=', 1)
+        ->whereNotNull('email')
+            ->get();
+
+        foreach ($users as $user) {
+            Mail::to($user->getEmail())->send(new CouponNotification($coupon, $user));
+        }
     }
 }

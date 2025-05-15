@@ -11,6 +11,8 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('app:check-expired-sales')->daily();
         $schedule->command('carts:cleanup')->daily();
+        $schedule->command('cart:send-abandonment-emails')->daily();
+        $schedule->command('products:check-low-stock')->weekly();
     }
 
     protected function commands(): void

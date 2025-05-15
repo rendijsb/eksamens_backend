@@ -215,7 +215,6 @@ class Order extends Model
         return $this->getAttribute(self::UPDATED_AT);
     }
 
-    // Helper methods
     public function isPending(): bool
     {
         return $this->getStatus() === OrderStatusEnum::STATUS_PENDING;

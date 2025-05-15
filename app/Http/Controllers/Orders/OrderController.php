@@ -9,11 +9,13 @@ use App\Enums\Payments\PaymentStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Orders\OrderResource;
 use App\Http\Resources\Orders\OrderResourceCollection;
+use App\Mail\OrderStatusChanged;
 use App\Models\Orders\Order;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class OrderController extends Controller
@@ -172,6 +174,9 @@ class OrderController extends Controller
         return new OrderResourceCollection($orders);
     }
 
+    /**
+     * @throws \Exception
+     */
     public function updateOrderStatus(int $orderId, Request $request): OrderResource|JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -241,6 +246,12 @@ class OrderController extends Controller
             $order->update([
                 'status' => $newStatus
             ]);
+
+            Mail::to($order->getCustomerEmail())->send(new OrderStatusChanged($order, $currentStatus));
+
+            if ($newStatus === OrderStatusEnum::STATUS_COMPLETED->value) {
+                $this->orderService->sendReviewRequest($order);
+            }
 
             $updatedOrder = $order->fresh(['items.product']);
         }
