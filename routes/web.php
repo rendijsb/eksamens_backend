@@ -9,21 +9,21 @@ use Illuminate\Http\Response;
 
 Route::get('/{type}/image/{filename}', function ($type, $filename) {
     try {
-        $path = "public/{$type}/{$filename}";
+        $path = "{$type}/{$filename}";
 
-        if (!Storage::disk('local')->exists($path)) {
+        if (!Storage::disk('public')->exists($path)) {
             abort(404);
         }
 
-        $file = Storage::disk('local')->get($path);
-        $mimeType = Storage::disk('local')->mimeType($path);
+        $file = Storage::disk('public')->get($path);
+        $mimeType = Storage::disk('public')->mimeType($path);
 
         return new Response($file, 200, [
             'Content-Type' => $mimeType,
             'Content-Disposition' => 'inline; filename="' . $filename . '"',
             'Cache-Control' => 'public, max-age=86400'
         ]);
-    } catch (\ValueError $e) {
+    } catch (\Exception $e) {
         abort(404);
     }
 })->where('filename', '.*')
