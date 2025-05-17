@@ -79,8 +79,8 @@
 
     <div class="content">
         <div class="error-icon">⚠️</div>
-        <h2>Nederīga atrakstīšanās saite</h2>
-        <p>Šī saite ir nederīga vai ir jau izmantota. Jūs jau esat atrakstījies no jaunumiem vai saite ir novecojusi.</p>
+        <h2>Nederīga izrakstīšanās saite</h2>
+        <p>Šī saite ir nederīga vai ir jau izmantota. Jūs jau esat izrakstijies no jaunumiem vai saite ir novecojusi.</p>
 
         <a href="http://localhost:4200" class="btn">
             Atgriezties veikalā

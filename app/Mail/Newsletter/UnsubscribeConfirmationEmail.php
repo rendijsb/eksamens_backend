@@ -23,7 +23,7 @@ class UnsubscribeConfirmationEmail extends Mailable implements ShouldQueue
 
     public function build()
     {
-        return $this->subject('Jūs esat veiksmīgi atrakstījies - NetNest')
+        return $this->subject('Jūs esat veiksmīgi izrakstijie - NetNest')
             ->view('emails.newsletter.unsubscribe-confirmation')
             ->with([
                 'subscription' => $this->subscription,

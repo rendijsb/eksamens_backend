@@ -1,11 +1,11 @@
 @extends('emails.layout')
 
 @section('content')
-    <h1 class="greeting">Jūs esat atrakstījies no jaunumiem 📤</h1>
+    <h1 class="greeting">Jūs esat izrakstijies no jaunumiem 📤</h1>
 
     <p class="content-text">Sveiki, <strong>{{ $subscription->getEmail() }}</strong>!</p>
 
-    <p class="content-text">Mēs apstiprinām, ka jūs esat veiksmīgi atrakstījies no NetNest jaunumu saraksta.</p>
+    <p class="content-text">Mēs apstiprinām, ka jūs esat veiksmīgi izrakstijies no NetNest jaunumu saraksta.</p>
 
     <div class="highlight-box">
         <h3 style="color: #8B0000; margin: 0 0 15px 0;">Ko tas nozīmē:</h3>
@@ -25,7 +25,7 @@
         </ul>
     </div>
 
-    <p class="content-text">Ja jūs esat atrakstījies kļūdas dēļ vai vēlaties atkal saņemt mūsu jaunumus, jūs vienmēr varat pierakstīties mūsu mājaslapā.</p>
+    <p class="content-text">Ja jūs esat izrakstijie kļūdas dēļ vai vēlaties atkal saņemt mūsu jaunumus, jūs vienmēr varat pierakstīties mūsu mājaslapā.</p>
 
     <div style="text-align: center;">
         <a href="{{ $resubscribeUrl }}" class="cta-button">

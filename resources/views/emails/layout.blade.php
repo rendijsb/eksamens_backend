@@ -226,7 +226,7 @@
             @isset($unsubscribeUrl)
                 <p style="margin-top: 20px;">
                     Vairs nevēlaties saņemt šos e-pastus?
-                    <a href="{{ $unsubscribeUrl }}" class="unsubscribe-link">Atrakstieties šeit</a>
+                    <a href="{{ $unsubscribeUrl }}" class="unsubscribe-link">Izrakstīties šeit</a>
                 </p>
             @endisset
         </div>

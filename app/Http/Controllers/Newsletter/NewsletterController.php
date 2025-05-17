@@ -60,14 +60,14 @@ class NewsletterController extends Controller
 
         if (!$subscription) {
             return response()->json([
-                'message' => 'Nederīga atrakstīšanās saite',
+                'message' => 'Nederīga izrakstīšanās saite',
                 'success' => false
             ], 404);
         }
 
         if (!$subscription->getIsActive()) {
             return response()->json([
-                'message' => 'Jūs jau esat atrakstījies no jaunumiem',
+                'message' => 'Jūs jau esat izrakstijies no jaunumiem',
                 'success' => true
             ]);
         }
@@ -79,7 +79,7 @@ class NewsletterController extends Controller
         Mail::to($email)->send(new UnsubscribeConfirmationEmail($subscription));
 
         return response()->json([
-            'message' => 'Jūs esat veiksmīgi atrakstījies no jaunumiem.',
+            'message' => 'Jūs esat veiksmīgi izrakstijies no jaunumiem.',
             'success' => true
         ]);
     }
@@ -109,14 +109,14 @@ class NewsletterController extends Controller
 
         if (!$subscription) {
             return response()->json([
-                'message' => 'Nederīga atrakstīšanās saite',
+                'message' => 'Nederīga izrakstīšanās saite',
                 'success' => false
             ], 404);
         }
 
         if (!$subscription->getIsActive()) {
             return response()->json([
-                'message' => 'Jūs jau esat atrakstījies no jaunumiem',
+                'message' => 'Jūs jau esat izrakstijies no jaunumiem',
                 'success' => true
             ]);
         }
@@ -126,7 +126,7 @@ class NewsletterController extends Controller
         Mail::to($email)->send(new UnsubscribeConfirmationEmail($subscription));
 
         return response()->json([
-            'message' => 'Jūs esat veiksmīgi atrakstījies no jaunumiem.',
+            'message' => 'Jūs esat veiksmīgi izrakstijies no jaunumiem.',
             'success' => true
         ]);
 
