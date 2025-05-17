@@ -80,7 +80,7 @@ class Product extends Model
         return $this->getAttribute(self::STOCK);
     }
 
-    public function getSold(): int
+    public function getSold(): ?int
     {
         return $this->getAttribute(self::SOLD);
     }
