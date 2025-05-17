@@ -19,7 +19,7 @@ class SendCartAbandonmentEmails extends Command
 
         $carts = Cart::whereNotNull('user_id')
             ->whereHas('items')
-            ->where('updated_at', '>', now()->subDays(3))
+            ->where('updated_at', '<', now()->subDays(3))
             ->with(['user', 'items.product'])
             ->get();
 

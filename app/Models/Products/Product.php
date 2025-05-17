@@ -95,12 +95,12 @@ class Product extends Model
         return $this->getAttribute(self::SALE_PRICE);
     }
 
-    public function getSpecifications(): string
+    public function getSpecifications(): ?string
     {
         return $this->getAttribute(self::SPECIFICATIONS);
     }
 
-    public function getAdditionalInfo(): string
+    public function getAdditionalInfo(): ?string
     {
         return $this->getAttribute(self::ADDITIONAL_INFO);
     }
