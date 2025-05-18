@@ -17,6 +17,7 @@ use App\Http\Requests\Users\UpdateUserProfileRequest;
 use App\Http\Resources\Auth\UserResource;
 use App\Http\Resources\Auth\UserResourceCollection;
 use App\Models\Users\User;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
@@ -157,17 +158,23 @@ class UserController extends Controller
         return response()->json(Response::HTTP_NO_CONTENT);
     }
 
+    /**
+     * @throws FileNotFoundException
+     */
     public function updateProfileImage(UpdateProfileImageRequest $request): UserResource
     {
         /** @var User $user */
         $user = auth()->user();
 
         if ($user->getProfileImage()) {
-            Storage::delete('public/' . ImageTypeEnum::PROFILE->value . '/' . $user->getProfileImage());
+            $oldPath = ImageTypeEnum::PROFILE->value . '/' . $user->getProfileImage();
+            Storage::disk('s3')->delete($oldPath);
         }
 
         $imageName = Str::uuid() . '.' . $request->getProfileImage()->getClientOriginalExtension();
-        $request->getProfileImage()->storeAs('public/' . ImageTypeEnum::PROFILE->value, $imageName);
+        $path = ImageTypeEnum::PROFILE->value . '/' . $imageName;
+
+        Storage::disk('s3')->put($path, $request->getProfileImage()->get(), 'public');
 
         $user->update([
             User::PROFILE_IMAGE => $imageName
@@ -182,7 +189,8 @@ class UserController extends Controller
         $user = auth()->user();
 
         if ($user->getProfileImage()) {
-            Storage::delete('public/' . ImageTypeEnum::PROFILE->value . '/' . $user->getProfileImage());
+            $path = ImageTypeEnum::PROFILE->value . '/' . $user->getProfileImage();
+            Storage::disk('s3')->delete($path);
 
             $user->update([
                 User::PROFILE_IMAGE => null

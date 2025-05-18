@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Banners;
 
-use App\Enums\Images\ImageTypeEnum;
 use App\Models\Banners\Banner;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class BannerResource extends JsonResource
 {
@@ -14,6 +14,8 @@ class BannerResource extends JsonResource
 
     public function toArray($request): array
     {
+        $image = $this->resource->getRelatedImage();
+
         return [
             'id' => $this->resource->getId(),
             'title' => $this->resource->getTitle(),
@@ -22,7 +24,7 @@ class BannerResource extends JsonResource
             'button_text' => $this->resource->getButtonText(),
             'is_active' => $this->resource->getIsActive(),
             'created_at' => $this->resource->getCreatedAt(),
-            'image_link' => url('/' . ImageTypeEnum::BANNER->value . '/image/' . $this->resource->getRelatedImage()?->getImageLink()),
+            'image_link' => $image ? Storage::disk('s3')->url($image->getType() . '/' . $image->getImageLink()) : null,
         ];
     }
 }

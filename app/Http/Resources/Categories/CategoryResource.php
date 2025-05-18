@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Categories;
 
-use App\Enums\Images\ImageTypeEnum;
 use App\Models\Categories\Category;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class CategoryResource extends JsonResource
 {
@@ -14,12 +14,14 @@ class CategoryResource extends JsonResource
 
     public function toArray($request): array
     {
+        $image = $this->resource->getRelatedImage();
+
         return [
             'id' => $this->resource->getId(),
             'name' => $this->resource->getName(),
             'description' => $this->resource->getDescription(),
             'slug' => $this->resource->getSlug(),
-            'image' => url('/' . ImageTypeEnum::CATEGORY->value . '/image/' . $this->resource->getRelatedImage()?->getImageLink()),
+            'image' => $image ? Storage::disk('s3')->url($image->getType() . '/' . $image->getImageLink()) : null,
             'created_at' => $this->resource->getCreatedAt(),
             'products_count' => $this->resource->relatedProducts()?->count(),
             'active_products_count' => $this->resource->relatedActiveProducts()?->count(),

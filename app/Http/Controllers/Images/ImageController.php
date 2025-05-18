@@ -44,18 +44,20 @@ class ImageController extends Controller
 
         foreach ($request->getImages() as $index => $image) {
             $filename = Str::uuid() . '.' . $image->getClientOriginalExtension();
-            $image->storeAs('public/' . $request->getType(), $filename);
+            $path = $request->getType() . '/' . $filename;
+
+            Storage::disk('s3')->put($path, file_get_contents($image));
 
             $isPrimary = $isPrimaryRequired && $index === 0;
 
-            $image = Image::create([
+            $imageModel = Image::create([
                 Image::RELATED_ID => $id,
                 Image::TYPE => $request->getType(),
                 Image::IMAGE_LINK => $filename,
                 Image::IS_PRIMARY => $isPrimary
             ]);
 
-            $newImages[] = $image;
+            $newImages[] = $imageModel;
         }
 
         return new ImageResourceCollection(collect($newImages));
@@ -82,7 +84,8 @@ class ImageController extends Controller
         $relatedId = $image->getRelatedId();
         $isPrimary = $image->getIsPrimary();
 
-        Storage::delete('public/' . $image->getType() . '/' . $image->getImageLink());
+        $path = $image->getType() . '/' . $image->getImageLink();
+        Storage::disk('s3')->delete($path);
 
         $image->delete();
 
@@ -107,12 +110,15 @@ class ImageController extends Controller
             ->get();
 
         foreach ($existingImages as $image) {
-            Storage::delete('public/' . ImageTypeEnum::CATEGORY->value . '/' . $image->getImageLink());
+            $path = ImageTypeEnum::CATEGORY->value . '/' . $image->getImageLink();
+            Storage::disk('s3')->delete($path);
             $image->delete();
         }
 
         $filename = Str::uuid() . '.' . $imageFile->getClientOriginalExtension();
-        $imageFile->storeAs('public/' . ImageTypeEnum::CATEGORY->value, $filename);
+        $path = ImageTypeEnum::CATEGORY->value . '/' . $filename;
+
+        Storage::disk('s3')->put($path, file_get_contents((string)$imageFile));
 
         Image::create([
             Image::RELATED_ID => $categoryId,
@@ -129,12 +135,15 @@ class ImageController extends Controller
             ->get();
 
         foreach ($existingImages as $image) {
-            Storage::delete('public/' . $type . '/' . $image->getImageLink());
+            $path = $type . '/' . $image->getImageLink();
+            Storage::disk('s3')->delete($path);
             $image->delete();
         }
 
         $filename = Str::uuid() . '.' . $imageFile->getClientOriginalExtension();
-        $imageFile->storeAs('public/' . $type, $filename);
+        $path = $type . '/' . $filename;
+
+        Storage::disk('s3')->put($path, file_get_contents((string)$imageFile));
 
         Image::create([
             Image::RELATED_ID => $relatedId,

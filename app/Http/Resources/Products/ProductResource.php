@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Products;
 
-use App\Enums\Images\ImageTypeEnum;
 use App\Models\Products\Product;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class ProductResource extends JsonResource
 {
@@ -14,6 +14,8 @@ class ProductResource extends JsonResource
 
     public function toArray($request): array
     {
+        $primaryImage = $this->resource->getRelatedPrimaryImage();
+
         return [
             'id' => $this->resource->getId(),
             'name' => $this->resource->getName(),
@@ -27,8 +29,8 @@ class ProductResource extends JsonResource
             'additional_info' => $this->resource->getAdditionalInfo(),
             'status' => $this->resource->getStatus(),
             'category' => $this->resource->getRelatedCategory()->getName(),
-            'primary_image' => $this->resource->getRelatedPrimaryImage()?->getImageLink()
-                ? url('/' . ImageTypeEnum::PRODUCT->value . '/image/' . $this->resource->getRelatedPrimaryImage()?->getImageLink())
+            'primary_image' => $primaryImage
+                ? Storage::disk('s3')->url($primaryImage->getType() . '/' . $primaryImage->getImageLink())
                 : null,
             'is_sale_active' => $this->resource->isSaleActive(),
             'sale_ends_at' => $this->resource->getSaleEndsAt(),

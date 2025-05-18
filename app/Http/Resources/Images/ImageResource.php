@@ -6,6 +6,7 @@ namespace App\Http\Resources\Images;
 
 use App\Models\Images\Image;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class ImageResource extends JsonResource
 {
@@ -16,7 +17,7 @@ class ImageResource extends JsonResource
         return [
             'id' => $this->resource->getId(),
             'related_id' => $this->resource->getRelatedId(),
-            'image_url' => url('/' . $this->resource->getType() .'/image/' . $this->resource->getImageLink()),
+            'image_url' => Storage::disk('s3')->url($this->resource->getType() . '/' . $this->resource->getImageLink()),
             'is_primary' => $this->resource->getIsPrimary(),
             'created_at' => $this->resource->getCreatedAt(),
         ];

@@ -221,6 +221,10 @@ Route::middleware(['auth:sanctum', CheckRoleMiddleware::class . ':admin|moderato
     ->prefix('admin/analytics')
     ->group(function () {
         Route::get('/dashboard', [AnalyticsController::class, 'getDashboardData']);
+        Route::get('/sales', [AnalyticsController::class, 'getSalesAnalytics']);
+        Route::get('/customers', [AnalyticsController::class, 'getCustomerAnalyticsDetails']);
+        Route::get('/products', [AnalyticsController::class, 'getProductAnalyticsDetails']);
+        Route::get('/inventory', [AnalyticsController::class, 'getInventoryAnalyticsDetails']);
     });
 
 Route::middleware('auth:sanctum')->prefix('coupons')->group(function () {

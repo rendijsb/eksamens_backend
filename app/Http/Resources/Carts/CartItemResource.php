@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Carts;
 
-use App\Enums\Images\ImageTypeEnum;
 use App\Models\Carts\CartItem;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class CartItemResource extends JsonResource
 {
@@ -15,6 +15,7 @@ class CartItemResource extends JsonResource
     public function toArray($request): array
     {
         $product = $this->resource->product;
+        $primaryImage = $product->getRelatedPrimaryImage();
 
         return [
             'id' => $this->resource->getId(),
@@ -27,8 +28,8 @@ class CartItemResource extends JsonResource
                 'id' => $product->getId(),
                 'name' => $product->getName(),
                 'slug' => $product->getSlug(),
-                'image' => $product->getRelatedPrimaryImage()?->getImageLink()
-                    ? url('/' . ImageTypeEnum::PRODUCT->value . '/image/' . $product->getRelatedPrimaryImage()?->getImageLink())
+                'image' => $primaryImage
+                    ? Storage::disk('s3')->url($primaryImage->getType() . '/' . $primaryImage->getImageLink())
                     : null,
                 'stock' => $product->getStock(),
                 'category' => $product->getRelatedCategory()->getName(),
