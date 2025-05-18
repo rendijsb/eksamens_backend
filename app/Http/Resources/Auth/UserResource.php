@@ -15,9 +15,20 @@ class UserResource extends JsonResource
 
     public function toArray($request): array
     {
-        $profileImage = $this->resource->getProfileImage()
-            ? Storage::disk('s3')->url(ImageTypeEnum::PROFILE->value . '/' . $this->resource->getProfileImage())
-            : null;
+        $profileImage = null;
+        if ($this->resource->getProfileImage()) {
+            $imagePath = ImageTypeEnum::PROFILE->value . '/' . $this->resource->getProfileImage();
+
+            if (Storage::disk('s3')->exists($imagePath)) {
+                $profileImage = Storage::disk('s3')->url($imagePath);
+
+                $profileImage .= '?v=' . time();
+
+            } else {
+
+                $this->resource->update([User::PROFILE_IMAGE => null]);
+            }
+        }
 
         $data = [
             'id' => $this->resource->id,
@@ -27,6 +38,7 @@ class UserResource extends JsonResource
             'phone' => $this->resource->getPhone(),
             'created_at' => $this->resource->getCreatedAt(),
             'profile_image' => $profileImage,
+            'profile_image_filename' => $this->resource->getProfileImage(),
         ];
 
         if ($this->token) {

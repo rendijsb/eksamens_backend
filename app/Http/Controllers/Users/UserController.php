@@ -174,16 +174,21 @@ class UserController extends Controller
         $imageName = Str::uuid() . '.' . $request->getProfileImage()->getClientOriginalExtension();
         $path = ImageTypeEnum::PROFILE->value . '/' . $imageName;
 
-        Storage::disk('s3')->put($path, $request->getProfileImage()->get(), 'public');
-
         $user->update([
             User::PROFILE_IMAGE => $imageName
         ]);
 
-        return new UserResource($user->fresh());
+        $freshUser = $user->fresh();
+        $userResource = new UserResource($freshUser);
+
+        $imageUrl = $freshUser->getProfileImage()
+            ? Storage::disk('s3')->url(ImageTypeEnum::PROFILE->value . '/' . $freshUser->getProfileImage())
+            : null;
+
+        return $userResource;
     }
 
-    public function removeProfileImage(): UserResource
+    public function removeProfileImage(): UserResource|JsonResponse
     {
         /** @var User $user */
         $user = auth()->user();
