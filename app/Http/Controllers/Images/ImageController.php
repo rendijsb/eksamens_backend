@@ -46,7 +46,7 @@ class ImageController extends Controller
             $filename = Str::uuid() . '.' . $image->getClientOriginalExtension();
             $path = $request->getType() . '/' . $filename;
 
-            Storage::disk('s3')->put($path, file_get_contents($image));
+            Storage::disk('s3')->put($path, $image->get());
 
             $isPrimary = $isPrimaryRequired && $index === 0;
 
@@ -118,7 +118,7 @@ class ImageController extends Controller
         $filename = Str::uuid() . '.' . $imageFile->getClientOriginalExtension();
         $path = ImageTypeEnum::CATEGORY->value . '/' . $filename;
 
-        Storage::disk('s3')->put($path, file_get_contents((string)$imageFile));
+        Storage::disk('s3')->put($path, $imageFile->get());
 
         Image::create([
             Image::RELATED_ID => $categoryId,
@@ -143,7 +143,7 @@ class ImageController extends Controller
         $filename = Str::uuid() . '.' . $imageFile->getClientOriginalExtension();
         $path = $type . '/' . $filename;
 
-        Storage::disk('s3')->put($path, file_get_contents((string)$imageFile));
+        Storage::disk('s3')->put($path, $imageFile->get());
 
         Image::create([
             Image::RELATED_ID => $relatedId,
