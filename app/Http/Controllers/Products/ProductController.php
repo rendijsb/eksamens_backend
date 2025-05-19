@@ -146,7 +146,7 @@ class ProductController extends Controller
             ->withCount('approvedReviews as reviews_count')
             ->withAvg('approvedReviews as average_rating', 'rating')
             ->orderBy(Product::SOLD, 'desc')
-            ->limit(10)
+            ->limit(8)
             ->get();
 
         return new ProductResourceCollection($products);
