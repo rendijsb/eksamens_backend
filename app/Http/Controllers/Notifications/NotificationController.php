@@ -43,13 +43,18 @@ class NotificationController extends Controller
             NotificationPreference::PROMOTIONAL_EMAILS => $request->getPromotionalEmails(),
             NotificationPreference::NEWSLETTER_EMAILS => $request->getNewsletterEmails(),
             NotificationPreference::SECURITY_ALERTS => $request->getSecurityAlerts(),
-            NotificationPreference::PRODUCT_RECOMMENDATIONS => $request->getProductRecommendations(),
             NotificationPreference::INVENTORY_ALERTS => $request->getInventoryAlerts(),
-            NotificationPreference::PRICE_DROP_ALERTS => $request->getPriceDropAlerts(),
             NotificationPreference::REVIEW_REMINDERS => $request->getReviewReminders(),
             NotificationPreference::EMAIL_NOTIFICATIONS => $request->getEmailNotifications(),
-            NotificationPreference::SMS_NOTIFICATIONS => $request->getSmsNotifications(),
         ]);
+
+        if ($request->getNewsletterEmails() === false && $user->relatedNewsletter()) {
+            $user->relatedNewsletter()->unsubscribe();
+        }
+
+        if ($request->getNewsletterEmails() === true) {
+            $user->relatedNewsletter()->resubscribe();
+        }
 
         return new NotificationPreferenceResource($preferences);
     }

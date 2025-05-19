@@ -135,12 +135,9 @@ class NotificationPreference extends Model
             self::PROMOTIONAL_EMAILS => true,
             self::NEWSLETTER_EMAILS => true,
             self::SECURITY_ALERTS => true,
-            self::PRODUCT_RECOMMENDATIONS => true,
             self::INVENTORY_ALERTS => false,
-            self::PRICE_DROP_ALERTS => false,
             self::REVIEW_REMINDERS => true,
             self::EMAIL_NOTIFICATIONS => true,
-            self::SMS_NOTIFICATIONS => false,
         ]);
     }
 }
