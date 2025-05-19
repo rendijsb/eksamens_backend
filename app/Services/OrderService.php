@@ -173,7 +173,12 @@ class OrderService
             if ($status === PaymentStatusEnum::PAID->value) {
                 $user = User::find($order->getUserId());
 
-                Mail::to($order->getCustomerEmail())->send(new PaymentConfirmation($order));
+                $this->emailDispatchService->sendEmail(
+                    $order->getCustomerEmail(),
+                    new PaymentConfirmation($order),
+                    $order->user,
+                    'order_status'
+                );
 
                 if ($user) {
                     $cart = Cart::where(Cart::USER_ID, $user->getId())->first();
@@ -328,7 +333,11 @@ class OrderService
 
     public function sendReviewRequest(Order $order): void
     {
-        Mail::to($order->getCustomerEmail())
-            ->later(now()->addDays(3), new ReviewRequest($order));
+        $this->emailDispatchService->sendEmail(
+            $order->getCustomerEmail(),
+            new ReviewRequest($order),
+            $order->user,
+            'review_reminder'
+        );
     }
 }

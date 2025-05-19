@@ -27,7 +27,6 @@ class CouponController extends Controller
     public function __construct(
         private readonly CouponService        $couponService,
         private readonly EmailDispatchService $emailDispatchService
-
     )
     {
     }
