@@ -16,7 +16,6 @@ use App\Mail\WelcomeUser;
 use App\Models\Roles\Role;
 use App\Models\Users\User;
 use Carbon\Carbon;
-use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,25 +27,22 @@ class AuthController extends Controller
 {
     public function register(RegisterRequest $request): UserResource|JsonResponse
     {
-        try {
-            $clientRole = Role::where(Role::NAME, RoleEnum::CLIENT->value)->first();
+        $clientRole = Role::where(Role::NAME, RoleEnum::CLIENT->value)->first();
 
-            $user = User::create([
-                User::NAME => $request->getName(),
-                User::EMAIL => $request->getEmail(),
-                User::PASSWORD => Hash::make($request->getPassword()),
-                User::ROLE_ID => $clientRole->getId(),
-                User::PHONE => $request->getPhone() ? $request->getPhone() : null,
-            ]);
+        /** @var User $user */
+        $user = User::create([
+            User::NAME => $request->getName(),
+            User::EMAIL => $request->getEmail(),
+            User::PASSWORD => Hash::make($request->getPassword()),
+            User::ROLE_ID => $clientRole->getId(),
+            User::PHONE => $request->getPhone() ? $request->getPhone() : null,
+        ]);
 
-            Mail::to($user->getEmail())->send(new WelcomeUser($user));
+        $user->getOrCreateNotificationPreferences();
 
-            return new UserResource($user);
-        } catch (Exception $exception) {
-            return response()->json([
-                'message' => 'Kļūda reģistrējot lietotāju'
-            ], 422);
-        }
+        Mail::to($user->getEmail())->send(new WelcomeUser($user));
+
+        return new UserResource($user);
     }
 
     public function login(LoginRequest $request): UserResource|JsonResponse
