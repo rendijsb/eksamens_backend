@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Notifications;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Notifications\UpdateNotificationPreferencesRequest;
 use App\Http\Resources\Notifications\NotificationPreferenceResource;
+use App\Models\Newsletter\NewsletterSubscription;
 use App\Models\Users\NotificationPreference;
 use App\Models\Users\User;
 use Illuminate\Http\JsonResponse;
@@ -48,12 +49,22 @@ class NotificationController extends Controller
             NotificationPreference::EMAIL_NOTIFICATIONS => $request->getEmailNotifications(),
         ]);
 
-        if ($request->getNewsletterEmails() === false && $user->relatedNewsletter()) {
-            $user->relatedNewsletter()->unsubscribe();
+        $newsletter = $user->relatedNewsletter();
+
+        if ($request->getNewsletterEmails() === false && $newsletter && $newsletter->getIsActive()) {
+            $newsletter->unsubscribe();
         }
 
         if ($request->getNewsletterEmails() === true) {
-            $user->relatedNewsletter()->resubscribe();
+            if ($newsletter) {
+                if (!$newsletter->getIsActive()) {
+                    $newsletter->resubscribe();
+                }
+            } else {
+                NewsletterSubscription::create([
+                    NewsletterSubscription::EMAIL => $user->getEmail(),
+                ]);
+            }
         }
 
         return new NotificationPreferenceResource($preferences);
