@@ -23,8 +23,8 @@ class CategoryResource extends JsonResource
             'slug' => $this->resource->getSlug(),
             'image' => $image ? Storage::disk('s3')->url($image->getType() . '/' . $image->getImageLink()) : null,
             'created_at' => $this->resource->getCreatedAt(),
-            'products_count' => $this->resource->relatedProducts()?->count(),
-            'active_products_count' => $this->resource->relatedActiveProducts()?->count(),
+            'products_count' => $this->resource->related_products_count ?? $this->resource->relatedProducts()?->count(),
+            'active_products_count' => $this->resource->active_products_count ?? $this->resource->relatedActiveProducts()?->count(),
         ];
     }
 }
