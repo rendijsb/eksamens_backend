@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\Users\NotificationPreference;
 use App\Models\Users\User;
+use Illuminate\Support\Collection;
 
 class NotificationService
 {
@@ -30,15 +31,13 @@ class NotificationService
             'promotional' => $preferences->getPromotionalEmails(),
             'newsletter' => $preferences->getNewsletterEmails(),
             'security' => $preferences->getSecurityAlerts(),
-            'product_recommendations' => $preferences->getProductRecommendations(),
             'inventory', 'low_stock' => $this->isAdminOrModerator($user) && $preferences->getInventoryAlerts(),
-            'price_drop' => $preferences->getPriceDropAlerts(),
             'review_reminder' => $preferences->getReviewReminders(),
             default => true,
         };
     }
 
-    public function getUsersForNotificationType(string $type): \Illuminate\Database\Eloquent\Collection
+    public function getUsersForNotificationType(string $type): Collection
     {
         $query = User::whereHas('notificationPreferences', function ($q) use ($type) {
             $q->where('email_notifications', true);
@@ -48,9 +47,7 @@ class NotificationService
                 'promotional' => $q->where('promotional_emails', true),
                 'newsletter' => $q->where('newsletter_emails', true),
                 'security' => $q->where('security_alerts', true),
-                'product_recommendations' => $q->where('product_recommendations', true),
                 'inventory', 'low_stock' => $q->where('inventory_alerts', true),
-                'price_drop' => $q->where('price_drop_alerts', true),
                 'review_reminder' => $q->where('review_reminders', true),
                 default => null,
             };

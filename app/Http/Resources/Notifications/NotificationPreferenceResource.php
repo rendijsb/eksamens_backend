@@ -9,6 +9,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class NotificationPreferenceResource extends JsonResource
 {
+    /** @var NotificationPreference $resource */
     public $resource = NotificationPreference::class;
 
     public function toArray($request): array
@@ -20,12 +21,9 @@ class NotificationPreferenceResource extends JsonResource
             'promotional_emails' => $this->resource->getPromotionalEmails(),
             'newsletter_emails' => $this->resource->getNewsletterEmails(),
             'security_alerts' => $this->resource->getSecurityAlerts(),
-            'product_recommendations' => $this->resource->getProductRecommendations(),
             'inventory_alerts' => $this->resource->getInventoryAlerts(),
-            'price_drop_alerts' => $this->resource->getPriceDropAlerts(),
             'review_reminders' => $this->resource->getReviewReminders(),
             'email_notifications' => $this->resource->getEmailNotifications(),
-            'sms_notifications' => $this->resource->getSmsNotifications(),
             'created_at' => $this->resource->getCreatedAt()->format('Y-m-d H:i:s'),
             'updated_at' => $this->resource->getUpdatedAt()->format('Y-m-d H:i:s'),
         ];

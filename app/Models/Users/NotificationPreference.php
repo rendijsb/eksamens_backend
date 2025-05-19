@@ -16,12 +16,9 @@ class NotificationPreference extends Model
     const PROMOTIONAL_EMAILS = 'promotional_emails';
     const NEWSLETTER_EMAILS = 'newsletter_emails';
     const SECURITY_ALERTS = 'security_alerts';
-    const PRODUCT_RECOMMENDATIONS = 'product_recommendations';
     const INVENTORY_ALERTS = 'inventory_alerts';
-    const PRICE_DROP_ALERTS = 'price_drop_alerts';
     const REVIEW_REMINDERS = 'review_reminders';
     const EMAIL_NOTIFICATIONS = 'email_notifications';
-    const SMS_NOTIFICATIONS = 'sms_notifications';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
@@ -31,12 +28,9 @@ class NotificationPreference extends Model
         self::PROMOTIONAL_EMAILS,
         self::NEWSLETTER_EMAILS,
         self::SECURITY_ALERTS,
-        self::PRODUCT_RECOMMENDATIONS,
         self::INVENTORY_ALERTS,
-        self::PRICE_DROP_ALERTS,
         self::REVIEW_REMINDERS,
         self::EMAIL_NOTIFICATIONS,
-        self::SMS_NOTIFICATIONS,
     ];
 
     protected $casts = [
@@ -44,12 +38,9 @@ class NotificationPreference extends Model
         self::PROMOTIONAL_EMAILS => 'boolean',
         self::NEWSLETTER_EMAILS => 'boolean',
         self::SECURITY_ALERTS => 'boolean',
-        self::PRODUCT_RECOMMENDATIONS => 'boolean',
         self::INVENTORY_ALERTS => 'boolean',
-        self::PRICE_DROP_ALERTS => 'boolean',
         self::REVIEW_REMINDERS => 'boolean',
         self::EMAIL_NOTIFICATIONS => 'boolean',
-        self::SMS_NOTIFICATIONS => 'boolean',
     ];
 
     public function user(): BelongsTo
@@ -87,19 +78,9 @@ class NotificationPreference extends Model
         return $this->getAttribute(self::SECURITY_ALERTS);
     }
 
-    public function getProductRecommendations(): bool
-    {
-        return $this->getAttribute(self::PRODUCT_RECOMMENDATIONS);
-    }
-
     public function getInventoryAlerts(): bool
     {
         return $this->getAttribute(self::INVENTORY_ALERTS);
-    }
-
-    public function getPriceDropAlerts(): bool
-    {
-        return $this->getAttribute(self::PRICE_DROP_ALERTS);
     }
 
     public function getReviewReminders(): bool
@@ -110,11 +91,6 @@ class NotificationPreference extends Model
     public function getEmailNotifications(): bool
     {
         return $this->getAttribute(self::EMAIL_NOTIFICATIONS);
-    }
-
-    public function getSmsNotifications(): bool
-    {
-        return $this->getAttribute(self::SMS_NOTIFICATIONS);
     }
 
     public function getCreatedAt(): Carbon
