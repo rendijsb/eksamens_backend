@@ -11,6 +11,7 @@ use App\Models\Products\Product;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Category extends Model
 {
@@ -65,8 +66,16 @@ class Category extends Model
 
     public function getRelatedImage(): ?Image
     {
+        if ($this->relationLoaded('relatedImage')) {
+            return $this->relatedImage;
+        }
+
+        return $this->relatedImage()->first();
+    }
+
+    public function relatedImage(): HasOne
+    {
         return $this->hasOne(Image::class, Image::RELATED_ID, self::ID)
-            ->where(Image::TYPE, ImageTypeEnum::CATEGORY->value)
-            ->first();
+            ->where(Image::TYPE, ImageTypeEnum::CATEGORY->value);
     }
 }

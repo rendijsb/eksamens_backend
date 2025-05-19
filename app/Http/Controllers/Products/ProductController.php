@@ -135,10 +135,16 @@ class ProductController extends Controller
 
     public function getAllPopularActiveProducts(): ProductResourceCollection
     {
-        $query = Product::query();
-
-        $products = $query->where(Product::STATUS, ProductEnum::ACTIVE->value)
+        $products = Product::query()
+            ->where(Product::STATUS, ProductEnum::ACTIVE->value)
             ->where(Product::STOCK, '>', 0)
+            ->with([
+                'relatedCategory',
+                'primaryImage',
+                'approvedReviews'
+            ])
+            ->withCount('approvedReviews as reviews_count')
+            ->withAvg('approvedReviews as average_rating', 'rating')
             ->orderBy(Product::SOLD, 'desc')
             ->paginate(10);
 
@@ -183,7 +189,14 @@ class ProductController extends Controller
 
         $query->where(Product::STATUS, ProductEnum::ACTIVE->value);
 
-        $products = $query->paginate($request->getPerPage());
+        $products = $query
+            ->with([
+                'relatedCategory',
+                'primaryImage'
+            ])
+            ->withCount('approvedReviews as reviews_count')
+            ->withAvg('approvedReviews as average_rating', 'rating')
+            ->paginate($request->getPerPage());
 
         return new ProductResourceCollection($products);
     }
@@ -231,11 +244,7 @@ class ProductController extends Controller
                     ->orWhere(Product::SALE_ENDS_AT, '>', Carbon::now());
             });
 
-        if ($request->has('per_page')) {
-            $perPage = (int) $request->get('per_page');
-        } else {
-            $perPage = 12;
-        }
+        $perPage = $request->has('per_page') ? (int) $request->get('per_page') : 12;
 
         if ($request->has('sort_by')) {
             $sortField = $request->get('sort_by');
@@ -245,7 +254,14 @@ class ProductController extends Controller
             $query->orderByRaw('(price - sale_price) / price DESC');
         }
 
-        $products = $query->paginate($perPage);
+        $products = $query
+            ->with([
+                'relatedCategory',
+                'primaryImage'
+            ])
+            ->withCount('approvedReviews as reviews_count')
+            ->withAvg('approvedReviews as average_rating', 'rating')
+            ->paginate($perPage);
 
         return new ProductResourceCollection($products);
     }

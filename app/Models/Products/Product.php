@@ -10,6 +10,7 @@ use App\Models\Images\Image;
 use App\Models\Reviews\Review;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -117,7 +118,10 @@ class Product extends Model
 
     public function getRelatedCategory(): Category
     {
-        return $this->hasOne(Category::class, Category::ID, self::CATEGORY_ID)->first();
+        if ($this->relationLoaded('relatedCategory')) {
+            return $this->relatedCategory;
+        }
+        return $this->relatedCategory()->first();
     }
 
     public function getAllImages(): HasMany
@@ -135,6 +139,10 @@ class Product extends Model
 
     public function getRelatedPrimaryImage(): ?Image
     {
+        if ($this->relationLoaded('primaryImage')) {
+            return $this->primaryImage;
+        }
+
         $primary = $this->primaryImage()->first();
 
         if (!$primary) {
@@ -181,13 +189,24 @@ class Product extends Model
         return $this->hasMany(Review::class)->where(Review::IS_APPROVED, true);
     }
 
+    public function relatedCategory(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, self::CATEGORY_ID);
+    }
+
     public function getAverageRating(): string|int|null
     {
+        if (isset($this->attributes['average_rating'])) {
+            return $this->attributes['average_rating'];
+        }
         return $this->approvedReviews()->avg(Review::RATING);
     }
 
     public function getReviewsCount(): int
     {
+        if (isset($this->attributes['reviews_count'])) {
+            return (int) $this->attributes['reviews_count'];
+        }
         return $this->approvedReviews()->count();
     }
 }

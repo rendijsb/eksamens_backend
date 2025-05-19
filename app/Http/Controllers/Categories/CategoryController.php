@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Categories;
 
 use App\Enums\Images\ImageTypeEnum;
+use App\Enums\Products\ProductEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Images\ImageController;
 use App\Http\Requests\Categories\CreateCategoryRequest;
@@ -126,13 +127,18 @@ class CategoryController extends Controller
 
     public function getAllActiveCategories(): CategoryResourceCollection
     {
-        $query = Category::query();
-
-        $query->whereHas('relatedProducts', function($q) {
-            $q->where('status', 'active');
-        });
-
-        $categories = $query->paginate(10);
+        $categories = Category::query()
+            ->whereHas('relatedProducts', function($q) {
+                $q->where('status', 'active');
+            })
+            ->withCount([
+                'relatedProducts',
+                'relatedProducts as active_products_count' => function($q) {
+                    $q->where('status', ProductEnum::ACTIVE->value);
+                }
+            ])
+            ->orderBy('name')
+            ->paginate(10);
 
         return new CategoryResourceCollection($categories);
     }
