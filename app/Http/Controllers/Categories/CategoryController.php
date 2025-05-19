@@ -131,6 +131,7 @@ class CategoryController extends Controller
             ->whereHas('relatedProducts', function($q) {
                 $q->where('status', 'active');
             })
+            ->with(['relatedImage'])
             ->withCount([
                 'relatedProducts',
                 'relatedProducts as active_products_count' => function($q) {
@@ -138,7 +139,8 @@ class CategoryController extends Controller
                 }
             ])
             ->orderBy('name')
-            ->paginate(10);
+            ->limit(6)
+            ->get();
 
         return new CategoryResourceCollection($categories);
     }

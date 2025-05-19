@@ -146,7 +146,8 @@ class ProductController extends Controller
             ->withCount('approvedReviews as reviews_count')
             ->withAvg('approvedReviews as average_rating', 'rating')
             ->orderBy(Product::SOLD, 'desc')
-            ->paginate(10);
+            ->limit(10)
+            ->get();
 
         return new ProductResourceCollection($products);
     }
@@ -280,7 +281,7 @@ class ProductController extends Controller
             });
         }
 
-        $perPage = $request->get('per_page', 5);
+        $perPage = $request->get('per_page', 3);
         $products = $query->limit($perPage)->get();
 
         return new ProductResourceCollection($products);
