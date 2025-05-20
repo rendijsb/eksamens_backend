@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Models\Users;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Newsletter\NewsletterSubscription;
 use App\Models\Orders\Order;
 use App\Models\Roles\Role;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -82,6 +84,13 @@ class User extends Authenticatable
         return $this->hasMany(Order::class, 'user_id');
     }
 
+    public function relatedNewsletter(): ?NewsletterSubscription
+    {
+        return NewsletterSubscription::firstWhere(
+            NewsletterSubscription::EMAIL, $this->getEmail()
+        );
+    }
+
     public function getName(): string
     {
         return $this->getAttribute(self::NAME);
@@ -115,5 +124,19 @@ class User extends Authenticatable
     public function getProfileImage(): ?string
     {
         return $this->getAttribute(self::PROFILE_IMAGE);
+    }
+
+    public function notificationPreferences(): HasOne
+    {
+        return $this->hasOne(NotificationPreference::class);
+    }
+
+    public function getOrCreateNotificationPreferences(): NotificationPreference
+    {
+        if (!$this->notificationPreferences) {
+            return NotificationPreference::createDefaultForUser($this->getId());
+        }
+
+        return $this->notificationPreferences;
     }
 }

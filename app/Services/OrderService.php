@@ -19,7 +19,6 @@ use App\Models\Users\Address;
 use App\Models\Users\User;
 use Exception;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
@@ -28,15 +27,19 @@ class OrderService
     private CartService $cartService;
     private StripeService $stripeService;
     private CouponService $couponService;
+    private EmailDispatchService $emailDispatchService;
 
     public function __construct(
-        CartService $cartService,
-        StripeService $stripeService,
-        CouponService $couponService
-    ) {
+        CartService          $cartService,
+        StripeService        $stripeService,
+        CouponService        $couponService,
+        EmailDispatchService $emailDispatchService
+    )
+    {
         $this->cartService = $cartService;
         $this->stripeService = $stripeService;
         $this->couponService = $couponService;
+        $this->emailDispatchService = $emailDispatchService;
     }
 
     public function createOrderFromCart(Cart $cart, array $orderData): Order
@@ -91,6 +94,7 @@ class OrderService
                 ? $shippingAddressDetails
                 : $this->formatAddressDetails($orderData['billing_address']);
 
+            /** @var Order $order */
             $order = Order::create([
                 Order::USER_ID => $cart->getUserId(),
                 Order::ORDER_NUMBER => $orderNumber,
@@ -128,18 +132,24 @@ class OrderService
                 $this->couponService->applyCouponToOrder($order, (string)$couponCode, $cart->getUserId());
             }
 
-            Mail::to($order->getCustomerEmail())->send(new OrderConfirmation($order));
+            $this->emailDispatchService->sendEmail(
+                $order->getCustomerEmail(),
+                new OrderConfirmation($order),
+                $order->user()->first(),
+                'order_status'
+            );
 
             return $order;
         });
     }
 
     public function updateOrderPayment(
-        Order $order,
+        Order  $order,
         string $transactionId,
         string $status,
-        array $paymentDetails = []
-    ): Order {
+        array  $paymentDetails = []
+    ): Order
+    {
         return DB::transaction(function () use ($order, $transactionId, $status, $paymentDetails) {
             $order->update([
                 Order::TRANSACTION_ID => $transactionId,
@@ -163,7 +173,12 @@ class OrderService
             if ($status === PaymentStatusEnum::PAID->value) {
                 $user = User::find($order->getUserId());
 
-                Mail::to($order->getCustomerEmail())->send(new PaymentConfirmation($order));
+                $this->emailDispatchService->sendEmail(
+                    $order->getCustomerEmail(),
+                    new PaymentConfirmation($order),
+                    $order->user,
+                    'order_status'
+                );
 
                 if ($user) {
                     $cart = Cart::where(Cart::USER_ID, $user->getId())->first();
@@ -212,67 +227,54 @@ class OrderService
      */
     public function cancelOrder(Order $order): Order
     {
-        try {
-            $statusValue = $order->getStatus()->value;
+        $statusValue = $order->getStatus()->value;
 
-            if ($statusValue !== OrderStatusEnum::STATUS_PENDING->value &&
-                $statusValue !== OrderStatusEnum::STATUS_PROCESSING->value &&
-                $statusValue !== OrderStatusEnum::STATUS_FAILED->value) {
-                return $order->fresh(['items', 'coupon']);
-            }
-
-            $alreadyRefunded = PaymentTransaction::where('order_id', $order->getId())
-                ->where('status', PaymentStatusEnum::REFUNDED->value)
-                ->exists();
-
-            if (!$alreadyRefunded &&
-                $order->getPaymentStatus()->value === PaymentStatusEnum::PAID->value &&
-                $order->getTransactionId() !== null) {
-
-                try {
-                    $refundResponse = $this->stripeService->createRefund($order->getTransactionId());
-
-                    $order->update([
-                        Order::STATUS => OrderStatusEnum::STATUS_CANCELLED->value,
-                        Order::PAYMENT_STATUS => PaymentStatusEnum::REFUNDED->value
-                    ]);
-
-                    PaymentTransaction::create([
-                        PaymentTransaction::ORDER_ID => $order->getId(),
-                        PaymentTransaction::TRANSACTION_ID => $refundResponse['id'],
-                        PaymentTransaction::AMOUNT => $order->getTotalAmount(),
-                        PaymentTransaction::PAYMENT_METHOD => $order->getPaymentMethod(),
-                        PaymentTransaction::STATUS => PaymentStatusEnum::REFUNDED->value,
-                        PaymentTransaction::PAYMENT_DETAILS => ['refund_for' => $order->getTransactionId()]
-                    ]);
-
-                    $this->restoreProductInventory($order);
-
-                    if ($order->hasCoupon()) {
-                        $this->couponService->removeCouponFromOrder($order);
-                    }
-
-                } catch (\Exception $e) {
-                    Log::error('Refund failed: ' . $e->getMessage());
-                    $order->update([
-                        Order::STATUS => OrderStatusEnum::STATUS_CANCELLED->value
-                    ]);
-                }
-            } else {
-                $order->update([
-                    Order::STATUS => OrderStatusEnum::STATUS_CANCELLED->value
-                ]);
-
-                if ($order->hasCoupon()) {
-                    $this->couponService->removeCouponFromOrder($order);
-                }
-            }
-
+        if ($statusValue !== OrderStatusEnum::STATUS_PENDING->value &&
+            $statusValue !== OrderStatusEnum::STATUS_PROCESSING->value &&
+            $statusValue !== OrderStatusEnum::STATUS_FAILED->value) {
             return $order->fresh(['items', 'coupon']);
-        } catch (\Exception $e) {
-            Log::error('Error canceling order: ' . $e->getMessage());
-            throw $e;
         }
+
+        $alreadyRefunded = PaymentTransaction::where('order_id', $order->getId())
+            ->where('status', PaymentStatusEnum::REFUNDED->value)
+            ->exists();
+
+        if (!$alreadyRefunded &&
+            $order->getPaymentStatus()->value === PaymentStatusEnum::PAID->value &&
+            $order->getTransactionId() !== null) {
+
+            $refundResponse = $this->stripeService->createRefund($order->getTransactionId());
+
+            $order->update([
+                Order::STATUS => OrderStatusEnum::STATUS_CANCELLED->value,
+                Order::PAYMENT_STATUS => PaymentStatusEnum::REFUNDED->value
+            ]);
+
+            PaymentTransaction::create([
+                PaymentTransaction::ORDER_ID => $order->getId(),
+                PaymentTransaction::TRANSACTION_ID => $refundResponse['id'],
+                PaymentTransaction::AMOUNT => $order->getTotalAmount(),
+                PaymentTransaction::PAYMENT_METHOD => $order->getPaymentMethod(),
+                PaymentTransaction::STATUS => PaymentStatusEnum::REFUNDED->value,
+                PaymentTransaction::PAYMENT_DETAILS => ['refund_for' => $order->getTransactionId()]
+            ]);
+
+            $this->restoreProductInventory($order);
+
+            if ($order->hasCoupon()) {
+                $this->couponService->removeCouponFromOrder($order);
+            }
+        } else {
+            $order->update([
+                Order::STATUS => OrderStatusEnum::STATUS_CANCELLED->value
+            ]);
+
+            if ($order->hasCoupon()) {
+                $this->couponService->removeCouponFromOrder($order);
+            }
+        }
+
+        return $order->fresh(['items', 'coupon']);
     }
 
     private function generateOrderNumber(): string
@@ -331,7 +333,11 @@ class OrderService
 
     public function sendReviewRequest(Order $order): void
     {
-        Mail::to($order->getCustomerEmail())
-            ->later(now()->addDays(3), new ReviewRequest($order));
+        $this->emailDispatchService->sendEmail(
+            $order->getCustomerEmail(),
+            new ReviewRequest($order),
+            $order->user,
+            'review_reminder'
+        );
     }
 }

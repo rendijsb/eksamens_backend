@@ -17,16 +17,18 @@ use App\Mail\CouponNotification;
 use App\Models\Coupons\Coupon;
 use App\Models\Users\User;
 use App\Services\CouponService;
+use App\Services\EmailDispatchService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class CouponController extends Controller
 {
     public function __construct(
-        private readonly CouponService $couponService
-    ) {
+        private readonly CouponService        $couponService,
+        private readonly EmailDispatchService $emailDispatchService
+    )
+    {
     }
 
     public function getAllCoupons(GetAllCouponsRequest $request): CouponResourceCollection
@@ -35,7 +37,7 @@ class CouponController extends Controller
 
         if ($request->getSearch()) {
             $searchTerm = $request->getSearch();
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where(Coupon::CODE, 'like', "%{$searchTerm}%")
                     ->orWhere(Coupon::DESCRIPTION, 'like', "%{$searchTerm}%");
             });
@@ -192,11 +194,15 @@ class CouponController extends Controller
     public function sendCouponToAllUsers(Coupon $coupon): void
     {
         $users = User::where('role_id', '!=', 1)
-        ->whereNotNull('email')
+            ->whereNotNull('email')
             ->get();
 
-        foreach ($users as $user) {
-            Mail::to($user->getEmail())->send(new CouponNotification($coupon, $user));
+        if ($users->isNotEmpty()) {
+            $this->emailDispatchService->sendBulkEmails(
+                $users->toArray(),
+                fn($user) => new CouponNotification($coupon, $user),
+                'promotional'
+            );
         }
     }
 }

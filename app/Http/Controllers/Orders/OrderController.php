@@ -11,134 +11,102 @@ use App\Http\Resources\Orders\OrderResource;
 use App\Http\Resources\Orders\OrderResourceCollection;
 use App\Mail\OrderStatusChanged;
 use App\Models\Orders\Order;
+use App\Services\EmailDispatchService;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class OrderController extends Controller
 {
     private OrderService $orderService;
+    private EmailDispatchService $emailDispatchService;
 
-    public function __construct(OrderService $orderService)
+    public function __construct(
+        OrderService         $orderService,
+        EmailDispatchService $emailDispatchService
+    )
     {
         $this->orderService = $orderService;
+        $this->emailDispatchService = $emailDispatchService;
     }
 
     public function getUserOrders(Request $request): OrderResourceCollection|JsonResponse
     {
-        try {
-            $user = $request->user();
-            $perPage = (int)$request->input('per_page', 10);
+        $user = $request->user();
+        $perPage = (int)$request->input('per_page', 10);
 
-            $ordersData = $this->orderService->getUserOrders($user, $perPage);
+        $ordersData = $this->orderService->getUserOrders($user, $perPage);
 
-            return new OrderResourceCollection($ordersData['orders']);
-        } catch (\Exception $e) {
-            Log::error('Failed to get user orders: ' . $e->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to get orders: ' . $e->getMessage()
-            ], 500);
-        }
+        return new OrderResourceCollection($ordersData['orders']);
     }
 
     public function getOrderById(int $orderId, Request $request): OrderResource|JsonResponse
     {
-        try {
-            $user = $request->user();
-            $order = $this->orderService->getOrderById($orderId);
+        $user = $request->user();
+        $order = $this->orderService->getOrderById($orderId);
 
-            if (!$order) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Order not found'
-                ], 404);
-            }
-
-            if ($order->getUserId() !== $user->getId() && !$user->relatedRole?->getName() == 'admin') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized to view this order'
-                ], 403);
-            }
-
-            return new OrderResource($order);
-        } catch (\Exception $e) {
-            Log::error('Failed to get order: ' . $e->getMessage());
-
+        if (!$order) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to get order: ' . $e->getMessage()
-            ], 500);
+                'message' => 'Order not found'
+            ], 404);
         }
+
+        if ($order->getUserId() !== $user->getId() && !$user->relatedRole?->getName() == 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized to view this order'
+            ], 403);
+        }
+
+        return new OrderResource($order);
     }
 
     public function getOrderByNumber(string $orderNumber, Request $request): OrderResource|JsonResponse
     {
-        try {
-            $user = $request->user();
-            $order = $this->orderService->getOrderByNumber($orderNumber);
+        $user = $request->user();
+        $order = $this->orderService->getOrderByNumber($orderNumber);
 
-            if (!$order) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Order not found'
-                ], 404);
-            }
-
-            if ($order->getUserId() !== $user->getId() && !$user->relatedRole?->getName() == 'admin') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized to view this order'
-                ], 403);
-            }
-
-            return new OrderResource($order);
-        } catch (\Exception $e) {
-            Log::error('Failed to get order: ' . $e->getMessage());
-
+        if (!$order) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to get order: ' . $e->getMessage()
-            ], 500);
+                'message' => 'Order not found'
+            ], 404);
         }
+
+        if ($order->getUserId() !== $user->getId() && !$user->relatedRole?->getName() == 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized to view this order'
+            ], 403);
+        }
+
+        return new OrderResource($order);
     }
 
     public function cancelOrder(int $orderId, Request $request): OrderResource|JsonResponse
     {
-        try {
-            $user = $request->user();
-            $order = $this->orderService->getOrderById($orderId);
+        $user = $request->user();
+        $order = $this->orderService->getOrderById($orderId);
 
-            if (!$order) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Order not found'
-                ], 404);
-            }
-
-            if ($order->getUserId() !== $user->getId() && $user->relatedRole?->getName() != 'admin') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized to cancel this order'
-                ], 403);
-            }
-
-            $cancelledOrder = $this->orderService->cancelOrder($order);
-
-            return new OrderResource($cancelledOrder);
-        } catch (\Exception $e) {
-            Log::error('Failed to cancel order: ' . $e->getMessage());
-
+        if (!$order) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to cancel order: ' . $e->getMessage()
-            ], 500);
+                'message' => 'Order not found'
+            ], 404);
         }
+
+        if ($order->getUserId() !== $user->getId() && $user->relatedRole?->getName() != 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized to cancel this order'
+            ], 403);
+        }
+
+        $cancelledOrder = $this->orderService->cancelOrder($order);
+
+        return new OrderResource($cancelledOrder);
     }
 
     public function getAllOrders(Request $request): OrderResourceCollection
@@ -203,12 +171,6 @@ class OrderController extends Controller
         $newStatus = $request->input('status');
         $currentStatus = $order->getStatus()->value;
 
-        Log::info('Order status change attempt', [
-            'order_id' => $orderId,
-            'current_status' => $currentStatus,
-            'new_status' => $newStatus
-        ]);
-
         if ($currentStatus === OrderStatusEnum::STATUS_CANCELLED->value &&
             $newStatus !== OrderStatusEnum::STATUS_CANCELLED->value) {
             return response()->json([
@@ -247,7 +209,12 @@ class OrderController extends Controller
                 'status' => $newStatus
             ]);
 
-            Mail::to($order->getCustomerEmail())->send(new OrderStatusChanged($order, $currentStatus));
+            $this->emailDispatchService->sendEmail(
+                $order->getCustomerEmail(),
+                new OrderStatusChanged($order, $currentStatus),
+                $order->user,
+                'order_status'
+            );
 
             if ($newStatus === OrderStatusEnum::STATUS_COMPLETED->value) {
                 $this->orderService->sendReviewRequest($order);

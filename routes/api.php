@@ -12,6 +12,7 @@ use App\Http\Controllers\Checkout\CheckoutController;
 use App\Http\Controllers\Coupons\CouponController;
 use App\Http\Controllers\Images\ImageController;
 use App\Http\Controllers\Newsletter\NewsletterController;
+use App\Http\Controllers\Notifications\NotificationController;
 use App\Http\Controllers\Orders\OrderController;
 use App\Http\Controllers\Pages\AboutPageController;
 use App\Http\Controllers\Pages\ContactController;
@@ -131,6 +132,11 @@ Route::prefix('profile')->group(function () {
         Route::post('update-image', [UserController::class, 'updateProfileImage']);
         Route::delete('remove-image', [UserController::class, 'removeProfileImage']);
         Route::get('products/{productId}/reviews', [ReviewController::class, 'getProductReviews']);
+
+        Route::prefix('notifications')->group(function () {
+            Route::get('preferences', [NotificationController::class, 'getNotificationPreferences']);
+            Route::put('preferences', [NotificationController::class, 'updateNotificationPreferences']);
+        });
     });
 
     Route::middleware('auth:sanctum')->prefix('addresses')->group(function () {
