@@ -199,7 +199,7 @@ class CouponController extends Controller
 
         if ($users->isNotEmpty()) {
             $this->emailDispatchService->sendBulkEmails(
-                $users,
+                $users->toArray(),
                 fn($user) => new CouponNotification($coupon, $user),
                 'promotional'
             );
