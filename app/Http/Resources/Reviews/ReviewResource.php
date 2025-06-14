@@ -33,9 +33,7 @@ class ReviewResource extends JsonResource
             'user' => [
                 'id' => $user ? $user->getId() : $this->resource->getUserId(),
                 'name' => $user ? $user->getName() : 'Anonymous',
-                'profile_image' => $user && $user->getProfileImage()
-                    ? url('/profile/image/' . $user->getProfileImage())
-                    : null,
+                'profile_image' => $user ? $user->getProfileImageUrl() : null,
             ],
             'rating' => $this->resource->getRating(),
             'review_text' => $this->resource->getReviewText(),

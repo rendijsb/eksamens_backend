@@ -23,7 +23,8 @@ class ReviewController extends Controller
         $query = Review::query()->where(Review::PRODUCT_ID, $productId);
 
         if (!$request->user() || !in_array($request->user()->relatedRole?->getName(), ['admin', 'moderator'])) {
-            $query->where(Review::IS_APPROVED, true);
+            $query->where(Review::IS_APPROVED, true)
+                ->Orwhere(Review::USER_ID, $request->user()->id);
         }
 
         $reviews = $query->with('user')->orderBy(Review::CREATED_AT, 'desc')->get();

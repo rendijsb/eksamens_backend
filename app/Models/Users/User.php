@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Users;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\Images\ImageTypeEnum;
 use App\Models\Newsletter\NewsletterSubscription;
 use App\Models\Orders\Order;
 use App\Models\Roles\Role;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -124,6 +126,18 @@ class User extends Authenticatable
     public function getProfileImage(): ?string
     {
         return $this->getAttribute(self::PROFILE_IMAGE);
+    }
+
+    public function getProfileImageUrl(): ?string
+    {
+        if (!$this->getProfileImage()) {
+            return null;
+        }
+
+        $imagePath = ImageTypeEnum::PROFILE->value . '/' . $this->getProfileImage();
+        $url = Storage::disk('s3')->url($imagePath);
+
+        return $url . '?v=' . time();
     }
 
     public function notificationPreferences(): HasOne
