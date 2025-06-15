@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Orders;
 
-use App\Enums\Images\ImageTypeEnum;
 use App\Models\Orders\OrderItem;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class OrderItemResource extends JsonResource
 {
@@ -31,7 +31,7 @@ class OrderItemResource extends JsonResource
                     'name' => $product->getName(),
                     'slug' => $product->getSlug(),
                     'image' => $primaryImage
-                        ? url('/' . ImageTypeEnum::PRODUCT->value . '/image/' . $primaryImage->getImageLink())
+                        ? Storage::disk('s3')->url($primaryImage->getType() . '/' . $primaryImage->getImageLink())
                         : null,
                 ];
             }),
