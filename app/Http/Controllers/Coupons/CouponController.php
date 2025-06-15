@@ -197,10 +197,11 @@ class CouponController extends Controller
             ->whereNotNull('email')
             ->get();
 
-        if ($users->isNotEmpty()) {
-            $this->emailDispatchService->sendBulkEmails(
-                $users,
-                fn($user) => new CouponNotification($coupon, $user),
+        foreach ($users as $user) {
+            $this->emailDispatchService->sendEmail(
+                $user->getEmail(),
+                new CouponNotification($coupon, $user),
+                $user,
                 'promotional'
             );
         }
