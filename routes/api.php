@@ -23,6 +23,9 @@ use App\Http\Controllers\Users\UserController;
 use App\Http\Controllers\Wishlists\WishlistController;
 use App\Http\Middleware\CheckRoleMiddleware;
 use Illuminate\Support\Facades\Route;
+use Laravel\Sanctum\Http\Controllers\CsrfCookieController;
+
+Route::get('/sanctum/csrf-cookie', [CsrfCookieController::class, 'show']);
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])

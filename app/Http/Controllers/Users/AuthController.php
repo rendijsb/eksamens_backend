@@ -18,6 +18,7 @@ use App\Models\Users\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -25,6 +26,12 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
+    public function __construct(
+        private readonly Auth $auth,
+    )
+    {
+    }
+
     public function register(RegisterRequest $request): UserResource|JsonResponse
     {
         $clientRole = Role::where(Role::NAME, RoleEnum::CLIENT->value)->first();
@@ -55,14 +62,17 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $token = $user->createToken($user->getName());
+        $this->auth->login($user);
 
-        return (new UserResource($user))->withToken($token->plainTextToken);
+        return new UserResource($user);
     }
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->tokens()->delete();
+        $this->auth->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json([
             'message' => 'Tu esi izlogojies'
